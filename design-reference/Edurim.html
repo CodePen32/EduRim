@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>مدرستي — EduBac Mauritania (Design Reference)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  html, body { margin: 0; padding: 0; background: #EEF1F6; font-family: 'Tajawal', sans-serif; }
+  * { box-sizing: border-box; }
+  button { font: inherit; }
+  a { text-decoration: none; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="android-frame.jsx"></script>
+<script type="text/babel" src="app-components.jsx"></script>
+<script type="text/babel" src="app-screens.jsx"></script>
+<script type="text/babel" src="app-screens-v2.jsx"></script>
+<script type="text/babel" src="app-screens-v3.jsx"></script>
+
+<script type="text/babel">
+const PHONE_W = 390;
+const PHONE_H = 844;
+
+function Phone({ children }) {
+  return (
+    <div style={{
+      width: PHONE_W + 16, height: PHONE_H + 16,
+      borderRadius: 44,
+      background: '#0d0f12',
+      padding: 8,
+      boxShadow: '0 30px 60px -30px rgba(20,30,60,0.4), 0 8px 20px -10px rgba(20,30,60,0.2)',
+      position: 'relative',
+    }}>
+      <div style={{
+        width: PHONE_W, height: PHONE_H,
+        borderRadius: 36, overflow: 'hidden',
+        background: '#fff', position: 'relative',
+      }}>
+        {/* faux status bar */}
+        <div style={{
+          position: 'absolute', top: 0, insetInlineStart: 0, insetInlineEnd: 0,
+          height: 32, zIndex: 10,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          paddingInline: 22, paddingTop: 8,
+          fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 700,
+          color: '#fff', pointerEvents: 'none',
+        }}>
+          <span>20:35</span>
+          <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
+            <svg width="14" height="10" viewBox="0 0 14 10" fill="#fff"><path d="M1 9 L1 7 M4 9 L4 5 M7 9 L7 3 M10 9 L10 1.5 M13 9 L13 0"/><path d="M0 9 L14 9 M1 7 L1 9 L0 9 M3 5 L4 5 L4 9 L3 9 M6 3 L7 3 L7 9 L6 9 M9 1.5 L10 1.5 L10 9 L9 9 M12 0 L13 0 L13 9 L12 9" fill="#fff" stroke="#fff"/></svg>
+            <svg width="12" height="10" viewBox="0 0 24 24" fill="#fff"><path d="M12 4a12 12 0 0 0-8.5 3.5L12 17l8.5-9.5A12 12 0 0 0 12 4z"/></svg>
+            <svg width="20" height="10" viewBox="0 0 26 12" fill="none"><rect x="1" y="2" width="20" height="8" rx="2" stroke="#fff" strokeWidth="1.2"/><rect x="3" y="4" width="14" height="4" fill="#fff"/><rect x="22" y="5" width="2" height="2" fill="#fff"/></svg>
+          </span>
+        </div>
+        {/* notch */}
+        <div style={{
+          position: 'absolute', top: 0, insetInlineStart: '50%', transform: 'translateX(-50%)',
+          width: 110, height: 26, background: '#0d0f12',
+          borderBottomLeftRadius: 16, borderBottomRightRadius: 16, zIndex: 20,
+        }}/>
+        <div style={{ position: 'absolute', inset: 0 }}>{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function PhoneOnLight({ children }) {
+  // For login screen — status bar dark
+  return (
+    <div style={{
+      width: PHONE_W + 16, height: PHONE_H + 16,
+      borderRadius: 44, background: '#0d0f12', padding: 8,
+      boxShadow: '0 30px 60px -30px rgba(20,30,60,0.4), 0 8px 20px -10px rgba(20,30,60,0.2)',
+    }}>
+      <div style={{
+        width: PHONE_W, height: PHONE_H, borderRadius: 36, overflow: 'hidden',
+        background: '#fff', position: 'relative',
+      }}>
+        <div style={{
+          position: 'absolute', top: 0, insetInlineStart: 0, insetInlineEnd: 0,
+          height: 32, zIndex: 10,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          paddingInline: 22, paddingTop: 8,
+          fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 700,
+          color: '#16213A', pointerEvents: 'none',
+        }}>
+          <span>20:35</span>
+          <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
+            <svg width="14" height="10" viewBox="0 0 14 10" fill="#16213A"><rect x="0" y="7" width="2" height="2"/><rect x="3" y="5" width="2" height="4"/><rect x="6" y="3" width="2" height="6"/><rect x="9" y="1" width="2" height="8"/><rect x="12" y="0" width="2" height="9"/></svg>
+            <svg width="20" height="10" viewBox="0 0 26 12"><rect x="1" y="2" width="20" height="8" rx="2" stroke="#16213A" fill="none" strokeWidth="1.2"/><rect x="3" y="4" width="14" height="4" fill="#16213A"/></svg>
+          </span>
+        </div>
+        <div style={{
+          position: 'absolute', top: 0, insetInlineStart: '50%', transform: 'translateX(-50%)',
+          width: 110, height: 26, background: '#0d0f12',
+          borderBottomLeftRadius: 16, borderBottomRightRadius: 16, zIndex: 20,
+        }}/>
+        <div style={{ position: 'absolute', inset: 0 }}>{children}</div>
+      </div>
+    </div>
+  );
+}
+
+const screens = [
+  { id: 'login',     label: '01 — تسجيل الدخول',     w: PHONE_W + 16, h: PHONE_H + 16, frame: PhoneOnLight, comp: <LoginScreen /> },
+  { id: 'signup',    label: '02 — إنشاء حساب',       w: PHONE_W + 16, h: PHONE_H + 16, frame: Phone,        comp: <SignupScreen /> },
+  { id: 'home',      label: '03 — الصفحة الرئيسية',  w: PHONE_W + 16, h: PHONE_H + 16, frame: Phone,        comp: <HomeScreen /> },
+  { id: 'subject',   label: '04 — شاشة المادة',      w: PHONE_W + 16, h: PHONE_H + 16, frame: Phone,        comp: <SubjectScreen /> },
+  { id: 'teachers',  label: '05 — الأساتذة',          w: PHONE_W + 16, h: PHONE_H + 16, frame: Phone,        comp: <TeachersScreen /> },
+  { id: 'units',     label: '06 — الوحدات',           w: PHONE_W + 16, h: PHONE_H + 16, frame: Phone,        comp: <UnitsScreen /> },
+  { id: 'lessons',   label: '07 — قائمة الدروس',      w: PHONE_W + 16, h: PHONE_H + 16, frame: Phone,        comp: <LessonsScreen /> },
+  { id: 'videos',    label: '08 — قائمة التمارين',    w: PHONE_W + 16, h: PHONE_H + 16, frame: Phone,        comp: <VideosScreen /> },
+  { id: 'downloads', label: '09 — الدروس المحملة',    w: PHONE_W + 16, h: PHONE_H + 16, frame: Phone,        comp: <DownloadedScreen /> },
+  { id: 'profile',   label: '10 — الحساب الشخصي',    w: PHONE_W + 16, h: PHONE_H + 16, frame: Phone,        comp: <ProfileScreen /> },
+  { id: 'calc',      label: '11 — حاسبة المعدل',      w: PHONE_W + 16, h: PHONE_H + 16, frame: Phone,        comp: <CalcScreen /> },
+];
+
+const screensV3 = [
+  { id: 'subjects', label: '21 — كل المواد',          w: PHONE_W + 16, h: PHONE_H + 16, frame: Phone, comp: <SubjectsListScreen /> },
+  { id: 'editprof',label: '22 — تعديل الحساب',           w: PHONE_W + 16, h: PHONE_H + 16, frame: Phone, comp: <EditProfileScreen /> },
+  { id: 'empty',   label: '23 — حالات فارغة',            w: PHONE_W + 16, h: PHONE_H + 16, frame: Phone, comp: <EmptyStatesScreen /> },
+  { id: 'loading', label: '24 — حالات تحميل',            w: PHONE_W + 16, h: PHONE_H + 16, frame: Phone, comp: <LoadingStatesScreen /> },
+  { id: 'error',   label: '25 — حالات خطأ',                w: PHONE_W + 16, h: PHONE_H + 16, frame: Phone, comp: <ErrorStatesScreen /> },
+];
+
+const screensV2 = [
+  { id: 'track',     label: '12 — اختيار المسار',     w: PHONE_W + 16, h: PHONE_H + 16, frame: PhoneOnLight, comp: <TrackSelectionScreen /> },
+  { id: 'bac',       label: '13 — شعبة الباكالوريا',  w: PHONE_W + 16, h: PHONE_H + 16, frame: Phone,        comp: <BacBranchScreen /> },
+  { id: 'lessond',   label: '14 — تفاصيل الدرس',      w: PHONE_W + 16, h: PHONE_H + 16, frame: Phone,        comp: <LessonDetailsScreen /> },
+  { id: 'video',     label: '15 — مشغل الفيديو',      w: PHONE_W + 16, h: PHONE_H + 16, frame: Phone,        comp: <VideoPlayerScreen /> },
+  { id: 'exercise',  label: '16 — تفاصيل التمرين',    w: PHONE_W + 16, h: PHONE_H + 16, frame: Phone,        comp: <ExerciseDetailsScreen /> },
+  { id: 'notif',     label: '17 — الإشعارات',         w: PHONE_W + 16, h: PHONE_H + 16, frame: Phone,        comp: <NotificationsScreen /> },
+  { id: 'search',    label: '18 — البحث الشامل',      w: PHONE_W + 16, h: PHONE_H + 16, frame: Phone,        comp: <SearchScreen /> },
+  { id: 'fav',       label: '19 — المفضلة',           w: PHONE_W + 16, h: PHONE_H + 16, frame: Phone,        comp: <FavoritesScreen /> },
+  { id: 'pkg',       label: '20 — الاشتراك والباقات', w: PHONE_W + 16, h: PHONE_H + 16, frame: Phone,        comp: <PackagesScreen /> },
+];
+
+// ── Brand strip (cover) ──────────────────────────────────────
+function BrandCover() {
+  return (
+    <div style={{
+      width: 880, height: PHONE_H + 16,
+      background: `linear-gradient(160deg, #2E7EC9 0%, #0F5FA8 55%, #0A4581 100%)`,
+      borderRadius: 36, padding: 40, color: '#fff',
+      position: 'relative', overflow: 'hidden',
+      display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+      fontFamily: 'Tajawal, sans-serif', direction: 'rtl',
+      boxShadow: '0 30px 60px -30px rgba(20,30,60,0.4)',
+    }}>
+      {/* deco */}
+      <svg viewBox="0 0 400 400" style={{ position: 'absolute', insetInlineStart: -80, top: -80, width: 480, height: 480, opacity: 0.12 }}>
+        <g stroke="#fff" fill="none" strokeWidth="1.4">
+          <circle cx="200" cy="200" r="60"/>
+          <circle cx="200" cy="200" r="100"/>
+          <circle cx="200" cy="200" r="140"/>
+          <circle cx="200" cy="200" r="180"/>
+        </g>
+      </svg>
+      <svg viewBox="0 0 200 200" style={{ position: 'absolute', insetInlineEnd: -40, bottom: -40, width: 280, height: 280, opacity: 0.1 }}>
+        <g fill="#fff">
+          <circle cx="40" cy="40" r="3"/><circle cx="80" cy="40" r="3"/><circle cx="120" cy="40" r="3"/><circle cx="160" cy="40" r="3"/>
+          <circle cx="40" cy="80" r="3"/><circle cx="80" cy="80" r="3"/><circle cx="120" cy="80" r="3"/><circle cx="160" cy="80" r="3"/>
+          <circle cx="40" cy="120" r="3"/><circle cx="80" cy="120" r="3"/><circle cx="120" cy="120" r="3"/><circle cx="160" cy="120" r="3"/>
+          <circle cx="40" cy="160" r="3"/><circle cx="80" cy="160" r="3"/><circle cx="120" cy="160" r="3"/><circle cx="160" cy="160" r="3"/>
+        </g>
+      </svg>
+
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
+        <EBLogo size={72} withWordmark />
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+          background: 'rgba(255,255,255,0.15)', paddingInline: 14, paddingBlock: 8,
+          borderRadius: 999, fontSize: 12, fontWeight: 700, letterSpacing: 0.5,
+        }}>
+          <MRFlag /> موريتانيا · MAURITANIE
+        </div>
+      </div>
+
+      <div style={{ position: 'relative' }}>
+        <div style={{ fontSize: 14, opacity: 0.8, letterSpacing: 2, marginBottom: 10, fontFamily: 'Inter' }}>HIGH-FIDELITY MOCKUP · 2026</div>
+        <div style={{ fontSize: 60, fontWeight: 900, lineHeight: 1.05, marginBottom: 14 }}>
+          منصة تعليمية<br/>للتلميذ الموريتاني
+        </div>
+        <div style={{ fontSize: 18, opacity: 0.92, lineHeight: 1.6, maxWidth: 600 }}>
+          تطبيق موبايل عربي يدعم تلاميذ ختم الدروس الإعدادية والباكالوريا — مع دروس مرئية، ملخصات، تمارين محلولة وحاسبة معدل.
+        </div>
+      </div>
+
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12,
+        position: 'relative',
+      }}>
+        {[
+          { l: 'الشاشات', v: '25' },
+          { l: 'المكونات', v: '14' },
+          { l: 'المسارات', v: '3' },
+          { l: 'التصدير', v: 'Flutter' },
+        ].map((s,i) => (
+          <div key={i} style={{
+            background: 'rgba(255,255,255,0.1)', borderRadius: 16, padding: 14,
+            backdropFilter: 'blur(8px)',
+            border: '1px solid rgba(255,255,255,0.18)',
+          }}>
+            <div style={{ fontSize: 11, opacity: 0.8, marginBottom: 4 }}>{s.l}</div>
+            <div style={{ fontSize: 22, fontWeight: 800, fontFamily: 'Inter, Tajawal' }}>{s.v}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Components card ──────────────────────────────────────────
+function ComponentsBoard() {
+  return (
+    <div style={{
+      width: 600, height: PHONE_H + 16,
+      background: '#fff', borderRadius: 36,
+      padding: 28, fontFamily: 'Tajawal, sans-serif', direction: 'rtl',
+      border: `1px solid ${EB.line}`,
+      boxShadow: '0 20px 40px -30px rgba(20,30,60,0.3)',
+      display: 'flex', flexDirection: 'column', gap: 18, overflow: 'hidden',
+    }}>
+      <div>
+        <div style={{ fontSize: 11, color: EB.muted, letterSpacing: 2, fontFamily: 'Inter', marginBottom: 4 }}>DESIGN SYSTEM</div>
+        <div style={{ fontSize: 26, fontWeight: 800, color: EB.ink }}>المكونات الأساسية</div>
+      </div>
+
+      {/* color palette */}
+      <div>
+        <div style={{ fontSize: 12, color: EB.muted, marginBottom: 8, fontWeight: 600 }}>الألوان</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8 }}>
+          {[
+            ['#0F5FA8', 'primary'],
+            ['#2E7EC9', 'light'],
+            ['#0A4581', 'dark'],
+            ['#F2A11A', 'accent'],
+            ['#F7F7FB', 'bg'],
+            ['#16213A', 'ink'],
+          ].map(([c, n]) => (
+            <div key={n} style={{
+              borderRadius: 12, height: 56,
+              background: c, color: c === '#F7F7FB' ? EB.ink : '#fff',
+              display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
+              padding: 8, fontSize: 10, fontFamily: 'Inter', fontWeight: 600,
+              border: c === '#F7F7FB' ? `1px solid ${EB.line}` : 'none',
+            }}>
+              <div style={{ opacity: 0.7 }}>{n}</div>
+              <div>{c}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* buttons */}
+      <div>
+        <div style={{ fontSize: 12, color: EB.muted, marginBottom: 8, fontWeight: 600 }}>الأزرار</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <PrimaryButton>زر رئيسي</PrimaryButton>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            <PrimaryButton variant="outline">إطار</PrimaryButton>
+            <PrimaryButton variant="ghost">ثانوي</PrimaryButton>
+          </div>
+        </div>
+      </div>
+
+      {/* form input */}
+      <div>
+        <div style={{ fontSize: 12, color: EB.muted, marginBottom: 8, fontWeight: 600 }}>حقل إدخال</div>
+        <FormInput label="الاسم الكامل" value="سعد ميلود" />
+      </div>
+
+      {/* lesson + progress */}
+      <div>
+        <div style={{ fontSize: 12, color: EB.muted, marginBottom: 8, fontWeight: 600 }}>زر درس + شريط تقدم</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <LessonButton num="01">Nombres réels</LessonButton>
+          <div style={{ padding: 4 }}>
+            <ProgressBar value={62} height={8}/>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ fontSize: 11, color: EB.muted, textAlign: 'center', marginTop: 'auto', fontFamily: 'Inter' }}>
+        Tajawal · Inter — RTL · 360–390 dp
+      </div>
+    </div>
+  );
+}
+
+// ── Main canvas ───────────────────────────────────────────────
+function App() {
+  const findV2 = id => screensV2.find(s => s.id === id);
+  const findV3 = id => screensV3.find(s => s.id === id);
+  const find   = id => screens.find(s => s.id === id);
+  const renderArtboards = (list) => list.map(s => {
+    const Frame = s.frame;
+    return (
+      <DCArtboard key={s.id} id={s.id} label={s.label} width={s.w} height={s.h}>
+        <Frame>{s.comp}</Frame>
+      </DCArtboard>
+    );
+  });
+  return (
+    <DesignCanvas title="مدرستي — EduBac Mauritania" subtitle="مرجع التصميم الكامل · 25 شاشة · 3 مسارات دراسية · جاهز لـ Flutter">
+      <DCSection id="cover" title="الهوية البصرية ونظام التصميم">
+        <DCArtboard id="brand-cover" label="غلاف المشروع" width={880} height={PHONE_H + 16}>
+          <BrandCover />
+        </DCArtboard>
+        <DCArtboard id="ds-components" label="الألوان والمكونات" width={600} height={PHONE_H + 16}>
+          <ComponentsBoard />
+        </DCArtboard>
+        <DCArtboard id="ds-type" label="الخطوط والمسافات" width={600} height={PHONE_H + 16}>
+          <TypeScaleBoard />
+        </DCArtboard>
+        <DCArtboard id="ds-forms" label="الحقول والحالات" width={600} height={PHONE_H + 16}>
+          <FormStatesBoard />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="onboarding" title="١. الانضمام واختيار المسار">
+        {renderArtboards([find('login'), findV2('track'), findV2('bac'), find('signup')])}
+      </DCSection>
+
+      <DCSection id="main" title="٢. الرئيسية والاستكشاف">
+        {renderArtboards([find('home'), findV3('subjects'), findV2('notif'), findV2('search'), find('subject')])}
+      </DCSection>
+
+      <DCSection id="learn" title="٣. رحلة التعلم — من المادة إلى الدرس">
+        {renderArtboards([find('teachers'), find('units'), find('lessons'), findV2('lessond'), findV2('video')])}
+      </DCSection>
+
+      <DCSection id="exercises" title="٤. التمارين والامتحانات">
+        {renderArtboards([find('videos'), findV2('exercise')])}
+      </DCSection>
+
+      <DCSection id="library" title="٥. مكتبة الطالب">
+        {renderArtboards([findV2('fav'), find('downloads'), find('calc')])}
+      </DCSection>
+
+      <DCSection id="account" title="٦. الحساب والاشتراك">
+        {renderArtboards([find('profile'), findV3('editprof'), findV2('pkg')])}
+      </DCSection>
+
+      <DCSection id="states" title="٧. حالات الواجهة (Empty · Loading · Error)">
+        {renderArtboards([findV3('empty'), findV3('loading'), findV3('error')])}
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+
+</body>
+</html>
