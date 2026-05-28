@@ -1,0 +1,35 @@
+# ── ملفات الرفع (uploads) — كبيرة جداً لـ GitHub ──
+backend/uploads/videos/
+backend/uploads/files/
+backend/uploads/covers/
+backend/uploads/images/
+
+# ── لوغ files ──
+*.log
+backend/server.log
+backend/server_err.log
+backend_err.log
+admin.log
+admin_err.log
+frontend.log
+frontend_err.log
+
+# ── Binary / executable ──
+backend/backend_server.exe
+backend/backend_server
+
+# ── Environment ──
+.env
+.env.local
+.env.production
+
+# ── Build outputs ──
+frontend/build/
+admin/dist/
+admin/node_modules/
+frontend/.dart_tool/
+frontend/build/
+
+# ── OS ──
+.DS_Store
+Thumbs.db
