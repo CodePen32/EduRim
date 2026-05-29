@@ -13,6 +13,9 @@ import { TeachersPage } from './pages/TeachersPage'
 import { UsersPage } from './pages/UsersPage'
 import { NotificationsPage } from './pages/NotificationsPage'
 import { AnnouncementsPage } from './pages/AnnouncementsPage'
+import { SubscriptionPlansPage } from './pages/SubscriptionPlansPage'
+import { UserSubscriptionsPage } from './pages/UserSubscriptionsPage'
+import { SubscriptionRequestsPage } from './pages/SubscriptionRequestsPage'
 
 export default function App() {
   return (
@@ -32,6 +35,9 @@ export default function App() {
             <Route path="/users" element={<UsersPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/announcements" element={<AnnouncementsPage />} />
+            <Route path="/subscription-plans" element={<SubscriptionPlansPage />} />
+            <Route path="/user-subscriptions" element={<UserSubscriptionsPage />} />
+            <Route path="/subscription-requests" element={<SubscriptionRequestsPage />} />
           </Route>
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />

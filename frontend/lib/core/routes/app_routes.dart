@@ -22,6 +22,8 @@ import '../../features/profile/screens/edit_profile_screen.dart';
 import '../../features/search/screens/search_screen.dart';
 import '../../features/progress/screens/progress_screen.dart';
 import '../../features/past_exams/screens/past_exams_screen.dart';
+import '../../features/subscription/screens/my_subscription_screen.dart';
+import '../../features/subscription/screens/request_subscription_screen.dart';
 
 class AppRoutes {
   static const String login = '/login';
@@ -47,6 +49,8 @@ class AppRoutes {
   static const String progress = '/progress';
   static const String pastExams = '/past-exams';
   static const String subjects = '/subjects';
+  static const String mySubscription = '/my-subscription';
+  static const String requestSubscription = '/request-subscription';
 
   static Map<String, WidgetBuilder> get routes => {
     login: (_) => const LoginScreen(),
@@ -72,5 +76,7 @@ class AppRoutes {
     progress: (_) => const ProgressScreen(),
     pastExams: (_) => const PastExamsScreen(),
     subjects: (_) => const SubjectsScreen(),
+    mySubscription: (_) => const MySubscriptionScreen(),
+    requestSubscription: (_) => const RequestSubscriptionScreen(),
   };
 }

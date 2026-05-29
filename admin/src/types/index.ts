@@ -108,6 +108,47 @@ export interface ApiResponse<T> {
   error?: string
 }
 
+export interface SubscriptionPlan {
+  id: number
+  name: string
+  description: string
+  duration_days: number
+  price: number
+  learning_path_id: number | null
+  bac_branch_id: number | null
+  is_active: boolean
+  created_at: string
+}
+
+export interface UserSubscription {
+  id: number
+  user_id: number
+  plan_id: number
+  start_date: string
+  end_date: string
+  is_active: boolean
+  notes: string
+  plan_name?: string
+  user_full_name?: string
+}
+
+export interface SubscriptionRequest {
+  id: number
+  user_id: number
+  plan_id: number
+  phone: string
+  payment_method: string
+  receipt_image_url: string
+  note: string
+  status: 'pending' | 'approved' | 'rejected'
+  admin_note: string
+  reviewed_at: string | null
+  created_at: string
+  user_full_name?: string
+  plan_name?: string
+  duration_days?: number
+}
+
 export interface DashboardStats {
   total_users: number
   total_subjects: number

@@ -85,9 +85,12 @@ class HomeDrawer extends StatelessWidget {
                   },
                 ),
                 _DrawerItem(
-                  icon: Icons.list_alt_outlined,
-                  label: 'قائمة اشتراكاتي',
-                  onTap: () => _openPlaceholder(context, 'قائمة اشتراكاتي'),
+                  icon: Icons.credit_card_outlined,
+                  label: 'اشتراكي',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, AppRoutes.mySubscription);
+                  },
                 ),
                 _DrawerItem(
                   icon: Icons.phone_outlined,

@@ -11,6 +11,7 @@ class ApiClient {
 
   void setToken(String token) => _token = token;
   void clearToken() => _token = null;
+  String? get currentToken => _token;
 
   Map<String, String> get _headers => {
     'Content-Type': 'application/json',

@@ -7,6 +7,7 @@ import '../../../core/services/download_service.dart';
 import '../../../core/services/favorite_service.dart';
 import '../../../core/services/offline_download_service.dart';
 import '../../../core/services/progress_service.dart';
+import '../../../core/services/subscription_service.dart';
 import '../../../core/utils/url_helper.dart';
 import '../../../shared/widgets/primary_button.dart';
 
@@ -26,6 +27,7 @@ class _LessonDetailsScreenState extends State<LessonDetailsScreen> {
   double _downloadProgress = 0;
   String _downloadLabel = '';
   bool _isDownloaded = false;
+  bool _checkingSubscription = false;
 
   @override
   void didChangeDependencies() {
@@ -164,6 +166,60 @@ class _LessonDetailsScreenState extends State<LessonDetailsScreen> {
     }
   }
 
+  Future<void> _checkSubscriptionAndOpenVideo(Lesson lesson) async {
+    if (lesson.isFree) {
+      _openVideo(lesson);
+      return;
+    }
+    setState(() => _checkingSubscription = true);
+    try {
+      final sub = await subscriptionService.getMySubscription();
+      if (!mounted) return;
+      if (sub.hasSubscription && sub.isActive) {
+        _openVideo(lesson);
+      } else {
+        _showSubscriptionDialog();
+      }
+    } catch (_) {
+      if (mounted) _showSubscriptionDialog();
+    } finally {
+      if (mounted) setState(() => _checkingSubscription = false);
+    }
+  }
+
+  void _showSubscriptionDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'اشتراك مطلوب',
+          style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
+          textAlign: TextAlign.right,
+        ),
+        content: const Text(
+          'هذا الدرس يحتاج إلى اشتراك نشط للمشاهدة.',
+          style: TextStyle(fontFamily: 'Cairo'),
+          textAlign: TextAlign.right,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('إلغاء', style: TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: AppColors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pushNamed(context, AppRoutes.mySubscription);
+            },
+            child: const Text('عرض الاشتراك', style: TextStyle(fontFamily: 'Cairo')),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _openVideo(Lesson lesson) {
     if (!lesson.videoUrl.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -235,7 +291,7 @@ class _LessonDetailsScreenState extends State<LessonDetailsScreen> {
                 coverImageUrl: lesson?.coverImageUrl ?? '',
                 isFree: isFree,
                 hasVideo: hasVideo,
-                onPlayTap: lesson != null ? () => _openVideo(lesson) : null,
+                onPlayTap: lesson != null ? () => _checkSubscriptionAndOpenVideo(lesson) : null,
               ),
             ),
           ),
@@ -296,7 +352,9 @@ class _LessonDetailsScreenState extends State<LessonDetailsScreen> {
                   PrimaryButton(
                     label: hasVideo ? 'مشاهدة الدرس' : 'الفيديو غير متاح حالياً',
                     icon: Icons.play_arrow_rounded,
-                    onPressed: lesson != null ? () => _openVideo(lesson) : () {},
+                    onPressed: _checkingSubscription
+                        ? () {}
+                        : lesson != null ? () => _checkSubscriptionAndOpenVideo(lesson) : () {},
                   ),
                   const SizedBox(height: 12),
 

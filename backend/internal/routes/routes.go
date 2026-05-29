@@ -173,6 +173,26 @@ func Setup(r *gin.Engine, jwtSecret string, db *sql.DB) {
 	me := api.Group("/me", middleware.Auth(jwtSecret))
 	me.GET("/announcements", announcementHandler.GetMyAnnouncements)
 
+	// Subscriptions
+	subRepo := repositories.NewSubscriptionRepository(db)
+	subHandler := handlers.NewSubscriptionHandler(subRepo)
+	me.GET("/subscription", subHandler.GetMySubscription)
+	me.POST("/uploads", handlers.UploadHandler) // رفع إيصالات الاشتراك
+	me.GET("/subscription-plans", subHandler.GetMyPlans)
+	me.GET("/subscription-requests", subHandler.GetMyRequests)
+	me.POST("/subscription-requests", subHandler.CreateRequest)
+	admin.GET("/subscription-plans", subHandler.GetAdminPlans)
+	admin.POST("/subscription-plans", subHandler.CreatePlan)
+	admin.PUT("/subscription-plans/:id", subHandler.UpdatePlan)
+	admin.DELETE("/subscription-plans/:id", subHandler.DeletePlan)
+	admin.GET("/subscription-requests", subHandler.GetAdminRequests)
+	admin.PATCH("/subscription-requests/:id/approve", subHandler.ApproveRequest)
+	admin.PATCH("/subscription-requests/:id/reject", subHandler.RejectRequest)
+	admin.GET("/user-subscriptions", subHandler.GetAdminUserSubscriptions)
+	admin.POST("/user-subscriptions", subHandler.CreateUserSubscription)
+	admin.PUT("/user-subscriptions/:id", subHandler.UpdateUserSubscription)
+	admin.DELETE("/user-subscriptions/:id", subHandler.DeleteUserSubscription)
+
 	// Admin Users
 	adminUsersRepo := repositories.NewAdminUsersRepository(db)
 	adminUsersHandler := handlers.NewAdminUsersHandler(adminUsersRepo)
