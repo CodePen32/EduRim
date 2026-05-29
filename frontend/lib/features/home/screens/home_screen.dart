@@ -247,8 +247,24 @@ class _HomeContentState extends State<_HomeContent> {
                     ),
                   );
                 }
-                final subjects = snapshot.data ?? [];
+                // dedup دفاعي — يمنع تكرار المواد بنفس الـ id
+                final seen = <int>{};
+                final subjects = (snapshot.data ?? [])
+                    .where((s) => seen.add(s.id))
+                    .toList();
                 if (subjects.isEmpty) {
+                  // BAC بدون شعبة — وجّه لاختيار الشعبة
+                  if (_user != null &&
+                      _user!.learningPathId == 3 &&
+                      _user!.bacBranchId == null) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) {
+                        Navigator.pushReplacementNamed(
+                            context, AppRoutes.selectBacBranch);
+                      }
+                    });
+                    return const SliverToBoxAdapter(child: SizedBox.shrink());
+                  }
                   if (_user != null && _user!.learningPathId == null) {
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       if (mounted) {

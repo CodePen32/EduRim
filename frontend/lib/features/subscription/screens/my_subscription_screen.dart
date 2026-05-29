@@ -105,9 +105,37 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
   }
 
   Widget _buildActiveSubscription(MySubscription sub) {
+    final expiringSoon = sub.daysRemaining > 0 && sub.daysRemaining <= 5;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // تنبيه انتهاء قريب
+        if (expiringSoon) ...[
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFFBEB),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFFDE68A)),
+            ),
+            child: Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'اشتراكك سينتهي قريبًا، يرجى تجديده للاستمرار في الوصول إلى الدروس.',
+                    style: TextStyle(
+                        fontFamily: 'Cairo', fontSize: 13, color: Color(0xFF92400E), height: 1.5),
+                    textAlign: TextAlign.right,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Icon(Icons.warning_amber_rounded, color: Color(0xFFD97706), size: 22),
+              ],
+            ),
+          ),
+        ],
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(24),
@@ -211,6 +239,26 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
             icon: Icons.timer_outlined,
             label: 'الأيام المتبقية',
             value: '${sub.daysRemaining} يوم'),
+        if (expiringSoon) ...[
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () async {
+                await Navigator.pushNamed(context, AppRoutes.requestSubscription);
+                _load();
+              },
+              icon: const Icon(Icons.refresh_rounded, color: AppColors.primary),
+              label: const Text('طلب تجديد الاشتراك',
+                  style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, color: AppColors.primary)),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                side: const BorderSide(color: AppColors.primary),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }

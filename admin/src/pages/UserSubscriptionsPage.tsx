@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Plus, Pencil, Trash2, Users } from 'lucide-react'
+import { useAdminScope } from '../context/AdminScopeContext'
 import { subscriptionService } from '../services/subscriptionService'
 import { usersService } from '../services/usersService'
 import type { UserSubscription, SubscriptionPlan, User } from '../types'
@@ -46,6 +47,7 @@ function daysRemaining(endDate: string): number {
 }
 
 export function UserSubscriptionsPage() {
+  const { queryParams } = useAdminScope()
   const [items, setItems] = useState<UserSubscription[]>([])
   const [plans, setPlans] = useState<SubscriptionPlan[]>([])
   const [users, setUsers] = useState<User[]>([])
@@ -63,15 +65,15 @@ export function UserSubscriptionsPage() {
     setLoading(true); setError('')
     try {
       const [subs, ps, us] = await Promise.all([
-        subscriptionService.getUserSubscriptions(),
+        subscriptionService.getUserSubscriptions(queryParams),
         subscriptionService.getPlans(),
-        usersService.getAll(''),
+        usersService.getAll(queryParams), // طلاب القسم الحالي فقط
       ])
       setItems(subs); setPlans(ps); setUsers(us)
     } catch (e) { setError((e as Error).message) }
     finally { setLoading(false) }
   }
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [queryParams]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function openCreate() { setEditing(null); setForm(EMPTY); setModal(true) }
   function openEdit(s: UserSubscription) {

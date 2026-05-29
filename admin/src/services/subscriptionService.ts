@@ -16,8 +16,8 @@ export const subscriptionService = {
     await api.delete(`/admin/subscription-plans/${id}`)
   },
 
-  async getUserSubscriptions(): Promise<UserSubscription[]> {
-    const res = await api.get('/admin/user-subscriptions')
+  async getUserSubscriptions(queryParams: string): Promise<UserSubscription[]> {
+    const res = await api.get(`/admin/user-subscriptions?${queryParams}`)
     return (res.data?.data ?? []) as UserSubscription[]
   },
   async createUserSubscription(data: Partial<UserSubscription>): Promise<void> {
@@ -30,8 +30,9 @@ export const subscriptionService = {
     await api.delete(`/admin/user-subscriptions/${id}`)
   },
 
-  async getRequests(status?: string): Promise<SubscriptionRequest[]> {
-    const q = status ? `?status=${status}` : ''
+  async getRequests(queryParams: string, status?: string): Promise<SubscriptionRequest[]> {
+    let q = queryParams ? `?${queryParams}` : '?'
+    if (status) q += `&status=${status}`
     const res = await api.get(`/admin/subscription-requests${q}`)
     return (res.data?.data ?? []) as SubscriptionRequest[]
   },

@@ -97,13 +97,18 @@ func (h *SubscriptionHandler) DeletePlan(c *gin.Context) {
 
 // GET /api/admin/user-subscriptions
 func (h *SubscriptionHandler) GetAdminUserSubscriptions(c *gin.Context) {
-	subs, err := h.repo.GetAllUserSubscriptions()
+	lpID, _ := strconv.Atoi(c.DefaultQuery("learning_path_id", "0"))
+	var bacBranchID *int
+	if bacStr := c.Query("bac_branch_id"); bacStr != "" {
+		v, err := strconv.Atoi(bacStr)
+		if err == nil {
+			bacBranchID = &v
+		}
+	}
+	subs, err := h.repo.GetAllUserSubscriptions(lpID, bacBranchID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب الاشتراكات", "error": err.Error()})
 		return
-	}
-	if subs == nil {
-		subs = []models.UserSubscription{}
 	}
 	c.JSON(http.StatusOK, gin.H{"data": subs})
 }
@@ -230,7 +235,15 @@ func (h *SubscriptionHandler) GetMyPlans(c *gin.Context) {
 // GET /api/admin/subscription-requests
 func (h *SubscriptionHandler) GetAdminRequests(c *gin.Context) {
 	status := c.Query("status")
-	list, err := h.repo.GetAllRequests(status)
+	lpID, _ := strconv.Atoi(c.DefaultQuery("learning_path_id", "0"))
+	var bacBranchID *int
+	if bacStr := c.Query("bac_branch_id"); bacStr != "" {
+		v, err := strconv.Atoi(bacStr)
+		if err == nil {
+			bacBranchID = &v
+		}
+	}
+	list, err := h.repo.GetAllRequests(status, lpID, bacBranchID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "تعذر تحميل الطلبات"})
 		return

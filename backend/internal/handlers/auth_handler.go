@@ -251,24 +251,10 @@ func (h *AuthHandler) UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	// Check if user already has a learning path set
-	var existingLP sql.NullInt64
-	database.DB.QueryRow(`SELECT learning_path_id FROM users WHERE id = ?`, userID).Scan(&existingLP)
-
+	// السماح دائماً بتحديث learning_path_id و bac_branch_id
 	var lpArg, bacArg interface{}
-	if existingLP.Valid {
-		// Path already set — ignore any incoming learning_path_id / bac_branch_id
-		lpArg = nil
-		bacArg = nil
-	} else {
-		// First time setting the path — allow it
-		lpArg = req.LearningPathID
-		if req.LearningPathID != nil && *req.LearningPathID == 3 {
-			bacArg = req.BacBranchID
-		} else {
-			bacArg = nil
-		}
-	}
+	lpArg = req.LearningPathID
+	bacArg = req.BacBranchID
 
 	_, err := database.DB.Exec(
 		`UPDATE users SET

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { CheckCircle, XCircle, FileImage, ClipboardList } from 'lucide-react'
+import { CheckCircle, XCircle, FileImage, ClipboardList, AlertCircle } from 'lucide-react'
+import { useAdminScope } from '../context/AdminScopeContext'
 import { subscriptionService } from '../services/subscriptionService'
 import type { SubscriptionRequest } from '../types'
 import { Button } from '../components/ui/Button'
@@ -35,47 +36,74 @@ const iBtnStyle: CSSProperties = {
   transition: 'background 0.15s', flexShrink: 0,
 }
 
+type Toast = { id: number; msg: string; type: 'success' | 'error' }
+
 export function SubscriptionRequestsPage() {
+  const { queryParams } = useAdminScope()
   const [items, setItems] = useState<SubscriptionRequest[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [filter, setFilter] = useState('')
 
-  // review modal state
+  // review modal
   const [reviewTarget, setReviewTarget] = useState<{ id: number; action: 'approve' | 'reject' } | null>(null)
   const [adminNote, setAdminNote] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [modalError, setModalError] = useState('')
 
   // image preview
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
+  // toasts
+  const [toasts, setToasts] = useState<Toast[]>([])
+  let toastId = 0
+
+  function showToast(msg: string, type: 'success' | 'error') {
+    const id = ++toastId
+    setToasts(prev => [...prev, { id, msg, type }])
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000)
+  }
+
   async function load() {
     setLoading(true); setError('')
-    try { setItems(await subscriptionService.getRequests(filter || undefined)) }
+    try { setItems(await subscriptionService.getRequests(queryParams, filter || undefined)) }
     catch (e) { setError((e as Error).message) }
     finally { setLoading(false) }
   }
 
-  useEffect(() => { load() }, [filter]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { load() }, [filter, queryParams]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function openReview(id: number, action: 'approve' | 'reject') {
-    setAdminNote('')
+    setAdminNote(''); setModalError('')
     setReviewTarget({ id, action })
   }
 
+  function closeReview() {
+    if (submitting) return
+    setReviewTarget(null); setModalError('')
+  }
+
   async function submitReview() {
-    if (!reviewTarget) return
-    setSubmitting(true)
+    if (!reviewTarget || submitting) return
+    setSubmitting(true); setModalError('')
     try {
       if (reviewTarget.action === 'approve') {
         await subscriptionService.approveRequest(reviewTarget.id, adminNote)
+        setReviewTarget(null)
+        showToast('تم قبول الطلب وإنشاء الاشتراك بنجاح', 'success')
       } else {
         await subscriptionService.rejectRequest(reviewTarget.id, adminNote)
+        setReviewTarget(null)
+        showToast('تم رفض الطلب وإشعار الطالب', 'success')
       }
-      setReviewTarget(null)
-      load()
-    } catch (e) { alert((e as Error).message) }
-    finally { setSubmitting(false) }
+      // أعد تحميل القائمة — إذا فشل لا نُظهر خطأ القبول
+      try { await load() } catch { /* تم القبول بنجاح، تجاهل خطأ التحديث */ }
+    } catch (e) {
+      // أظهر الخطأ داخل modal بدلاً من alert
+      setModalError((e as Error).message)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const fmt = (s: string) => {
@@ -84,11 +112,11 @@ export function SubscriptionRequestsPage() {
   }
 
   return (
-    <div>
+    <div style={{ position: 'relative' }}>
       <PageHeader title="طلبات الاشتراك" />
 
       {/* Filter tabs */}
-      <div style={{ padding: '0 24px 16px', display: 'flex', gap: 8 }}>
+      <div style={{ padding: '0 24px 16px', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {FILTERS.map(f => (
           <button key={f.value} onClick={() => setFilter(f.value)}
             style={{
@@ -146,7 +174,8 @@ export function SubscriptionRequestsPage() {
 
                   {/* Receipt image */}
                   {req.receipt_image_url ? (
-                    <button onClick={() => setPreviewUrl(buildFileUrl(req.receipt_image_url))} style={{ ...iBtnStyle, background: '#F8FAFC', border: '1px solid #E2E8F0' }}
+                    <button onClick={() => setPreviewUrl(buildFileUrl(req.receipt_image_url))}
+                      style={{ ...iBtnStyle, background: '#F8FAFC', border: '1px solid #E2E8F0' }}
                       title="عرض الإيصال">
                       <FileImage size={16} color="#2563EB" />
                     </button>
@@ -192,14 +221,15 @@ export function SubscriptionRequestsPage() {
       {/* Review Modal */}
       <Modal
         open={!!reviewTarget}
-        onClose={() => setReviewTarget(null)}
+        onClose={closeReview}
         title={reviewTarget?.action === 'approve' ? 'قبول الطلب' : 'رفض الطلب'}
         footer={
           <>
-            <Button variant="secondary" onClick={() => setReviewTarget(null)}>إلغاء</Button>
+            <Button variant="secondary" onClick={closeReview} disabled={submitting}>إلغاء</Button>
             <Button
               onClick={submitReview}
               loading={submitting}
+              disabled={submitting}
               style={reviewTarget?.action === 'reject' ? { background: '#DC2626' } : undefined}
             >
               {reviewTarget?.action === 'approve' ? 'قبول وإنشاء الاشتراك' : 'رفض الطلب'}
@@ -208,6 +238,7 @@ export function SubscriptionRequestsPage() {
         }
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* info banner */}
           <div style={{
             padding: '12px 16px', borderRadius: 10, fontFamily: 'Cairo', fontSize: 13,
             background: reviewTarget?.action === 'approve' ? '#F0FDF4' : '#FEF2F2',
@@ -218,6 +249,20 @@ export function SubscriptionRequestsPage() {
               ? <><CheckCircle size={16} /> سيتم إنشاء الاشتراك تلقائياً عند القبول</>
               : <><XCircle size={16} /> سيتم رفض الطلب وإشعار الطالب</>}
           </div>
+
+          {/* خطأ داخل modal */}
+          {modalError && (
+            <div style={{
+              padding: '10px 14px', borderRadius: 10, fontFamily: 'Cairo', fontSize: 13,
+              background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA',
+              display: 'flex', alignItems: 'center', gap: 8,
+            }}>
+              <AlertCircle size={16} />
+              {modalError}
+            </div>
+          )}
+
+          {/* ملاحظة */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', fontFamily: 'Cairo' }}>
               ملاحظة للطالب (اختياري)
@@ -227,6 +272,7 @@ export function SubscriptionRequestsPage() {
               value={adminNote}
               onChange={(e) => setAdminNote(e.target.value)}
               placeholder="أضف ملاحظة للطالب..."
+              disabled={submitting}
               style={{
                 padding: '9px 12px', border: '1.5px solid #E2E8F0', borderRadius: 10,
                 fontSize: 13, fontFamily: 'Cairo', background: '#FAFAFA', color: '#1E293B',
@@ -237,24 +283,32 @@ export function SubscriptionRequestsPage() {
         </div>
       </Modal>
 
-      {/* Image Preview Modal */}
+      {/* Image Preview */}
       {previewUrl && (
-        <div
-          onClick={() => setPreviewUrl(null)}
-          style={{
-            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9999,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'zoom-out',
-          }}
-        >
-          <img
-            src={previewUrl}
-            alt="إيصال الدفع"
+        <div onClick={() => setPreviewUrl(null)} style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9999,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'zoom-out',
+        }}>
+          <img src={previewUrl} alt="إيصال الدفع"
             style={{ maxWidth: '90vw', maxHeight: '90vh', borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
-            onClick={(e) => e.stopPropagation()}
-          />
+            onClick={(e) => e.stopPropagation()} />
         </div>
       )}
 
+      {/* Toasts */}
+      <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 9998, display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center' }}>
+        {toasts.map(t => (
+          <div key={t.id} style={{
+            padding: '12px 20px', borderRadius: 12, fontFamily: 'Cairo', fontSize: 14, fontWeight: 600,
+            background: t.type === 'success' ? '#16A34A' : '#DC2626', color: '#fff',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', gap: 8,
+            animation: 'fadeIn 0.2s ease',
+          }}>
+            {t.type === 'success' ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+            {t.msg}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

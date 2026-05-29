@@ -49,26 +49,35 @@ func (r *AnnouncementRepository) GetForAdmin(learningPathID, bacBranchID int) ([
 }
 
 // GetActiveForUser returns active announcements visible to a student based on their LP/BAC
+// GetActiveForUser — bacBranchID=-1 يعني الشعبة لم تُعيَّن بعد (BAC بدون شعبة)
 func (r *AnnouncementRepository) GetActiveForUser(learningPathID, bacBranchID int) ([]Announcement, error) {
 	if r.db == nil {
 		return nil, ErrNoDB
 	}
-	query := `SELECT id, title, COALESCE(message,''), COALESCE(image_url,''), COALESCE(link_url,''),
+
+	base := `SELECT id, title, COALESCE(message,''), COALESCE(image_url,''), COALESCE(link_url,''),
 	          learning_path_id, bac_branch_id, is_active, starts_at, ends_at, created_at
 	          FROM announcements
 	          WHERE is_active = true
 	            AND (starts_at IS NULL OR starts_at <= NOW())
 	            AND (ends_at   IS NULL OR ends_at   >= NOW())
-	            AND (
-	              learning_path_id IS NULL
-	              OR learning_path_id = ?
-	            )
-	            AND (
-	              bac_branch_id IS NULL
-	              OR bac_branch_id = ?
-	            )
-	          ORDER BY id DESC`
-	return r.scan(query, learningPathID, bacBranchID)
+	            AND (learning_path_id IS NULL OR learning_path_id = ?)`
+
+	// BAC بدون شعبة: أظهر فقط الإعلانات العامة
+	if learningPathID == 3 && bacBranchID == -1 {
+		query := base + ` AND learning_path_id IS NULL ORDER BY id DESC`
+		return r.scan(query, learningPathID)
+	}
+
+	// BAC بشعبة: الإعلانات العامة + إعلانات BAC العامة (bac=NULL) + إعلانات الشعبة المحددة
+	if learningPathID == 3 && bacBranchID > 0 {
+		query := base + ` AND (bac_branch_id IS NULL OR bac_branch_id = ?) ORDER BY id DESC`
+		return r.scan(query, learningPathID, bacBranchID)
+	}
+
+	// Concours/BEPC: لا يرون إعلانات Bac
+	query := base + ` AND bac_branch_id IS NULL ORDER BY id DESC`
+	return r.scan(query, learningPathID)
 }
 
 func (r *AnnouncementRepository) Create(a Announcement) (int64, error) {

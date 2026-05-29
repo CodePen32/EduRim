@@ -9,14 +9,14 @@ class ExerciseService {
     if (year != null) params.add('year=$year');
     if (difficulty != null && difficulty.isNotEmpty) params.add('difficulty=${Uri.encodeComponent(difficulty)}');
     final query = params.isEmpty ? '' : '?${params.join('&')}';
-    final response = await apiClient.get('/exercises$query');
+    final response = await apiClient.get('/me/exercises$query');
     final raw = response['data'];
     final data = raw is List ? raw : <dynamic>[];
     return data.map((e) => Exercise.fromJson(e as Map<String, dynamic>)).toList();
   }
 
   Future<Exercise> getExerciseById(int id) async {
-    final response = await apiClient.get('/exercises/$id');
+    final response = await apiClient.get('/me/exercises/$id');
     return Exercise.fromJson(response['data'] as Map<String, dynamic>);
   }
 }

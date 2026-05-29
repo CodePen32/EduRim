@@ -46,13 +46,17 @@ func (h *MeHandler) GetMySubjects(c *gin.Context) {
 	if lpID.Valid {
 		lp = int(lpID.Int64)
 	}
-	// إذا لم يختر المستخدم مسارًا بعد، نرجع قائمة فارغة
+	// لم يختر مسارًا بعد
 	if lp == 0 {
-		c.JSON(http.StatusOK, gin.H{"data": []interface{}{}})
+		c.JSON(http.StatusOK, gin.H{"data": []interface{}{}, "needs_path": true})
 		return
 	}
-	// BAC فقط يستخدم bac_branch_id
-	if bacID.Valid && lp == 3 {
+	// BAC بدون شعبة — طلب اختيار الشعبة
+	if lp == 3 && !bacID.Valid {
+		c.JSON(http.StatusOK, gin.H{"data": []interface{}{}, "needs_bac_branch": true})
+		return
+	}
+	if lp == 3 && bacID.Valid {
 		bac = int(bacID.Int64)
 	}
 

@@ -55,6 +55,13 @@ func Setup(r *gin.Engine, jwtSecret string, db *sql.DB) {
 	// Me — مواد المستخدم حسب مساره (محمي بـ JWT)
 	api.GET("/me/subjects", middleware.Auth(jwtSecret), meHandler.GetMySubjects)
 
+	// Me — دروس/تمارين/أساتذة المستخدم حسب مساره (محمي بـ JWT)
+	api.GET("/me/lessons", middleware.Auth(jwtSecret), lessonHandler.GetMyLessons)
+	api.GET("/me/lessons/:id", middleware.Auth(jwtSecret), lessonHandler.GetMyLessonByID)
+	api.GET("/me/exercises", middleware.Auth(jwtSecret), exerciseHandler.GetMyExercises)
+	api.GET("/me/exercises/:id", middleware.Auth(jwtSecret), exerciseHandler.GetMyExerciseByID)
+	api.GET("/me/teachers", middleware.Auth(jwtSecret), teacherHandler.GetMyTeachers)
+
 	// Teachers (مع دعم ?subject_id)
 	api.GET("/teachers", teacherHandler.GetTeachers)
 	api.GET("/teachers/:id", teacherHandler.GetTeacherByID)

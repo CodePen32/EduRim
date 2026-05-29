@@ -54,7 +54,7 @@ func (h *AnnouncementHandler) GetMyAnnouncements(c *gin.Context) {
 		Scan(&lpID, &bacID)
 
 	lp := 0
-	bac := 0
+	bac := -1 // -1 = لم تُعيَّن الشعبة بعد
 	if lpID.Valid {
 		lp = int(lpID.Int64)
 	}
