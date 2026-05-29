@@ -33,8 +33,7 @@ class _SelectBacBranchScreenState extends State<SelectBacBranchScreen>
   void initState() {
     super.initState();
     _future = learningPathService.getBacBranches();
-    _fadeCtrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 600));
+    _fadeCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
     _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut);
     _fadeCtrl.forward();
   }
@@ -45,8 +44,7 @@ class _SelectBacBranchScreenState extends State<SelectBacBranchScreen>
     super.dispose();
   }
 
-  void _reload() =>
-      setState(() => _future = learningPathService.getBacBranches());
+  void _reload() => setState(() => _future = learningPathService.getBacBranches());
 
   Future<void> _proceed() async {
     if (_selected == null) return;
@@ -64,28 +62,27 @@ class _SelectBacBranchScreenState extends State<SelectBacBranchScreen>
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF2F6FF),
+        backgroundColor: const Color(0xFFF5F7FB),
+        appBar: const SelectionAppBar(title: 'اختر شعبة الباكالوريا', showBack: true),
         body: FadeTransition(
           opacity: _fadeAnim,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SelectionHeroHeader(
-                icon: Icons.school_rounded,
-                title: 'اختر شعبة الباكالوريا',
+              const SelectionSectionHeader(
+                title: 'اختر شعبتك',
                 subtitle: 'سيتم عرض المواد والمحتوى المناسب لشعبتك فقط',
-                showBack: true,
               ),
               Expanded(
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: ApiBuilder<List<BacBranch>>(
                     future: _future,
                     onRetry: _reload,
                     builder: (branches) => ListView.separated(
-                      padding: const EdgeInsets.only(top: 16, bottom: 8),
+                      padding: const EdgeInsets.only(top: 8, bottom: 8),
                       itemCount: branches.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 14),
+                      separatorBuilder: (_, _) => const SizedBox(height: 12),
                       itemBuilder: (_, i) {
                         final b = branches[i];
                         final isSelected = _selected?.id == b.id;
@@ -132,66 +129,50 @@ class _BranchCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
+        duration: const Duration(milliseconds: 220),
         curve: Curves.easeInOut,
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFEEF3FF) : Colors.white,
-          borderRadius: BorderRadius.circular(22),
+          color: isSelected ? const Color(0xFFEAF2FF) : Colors.white,
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: isSelected ? AppColors.primary : const Color(0xFFDDE3F0),
-            width: isSelected ? 2 : 1,
+            color: isSelected ? AppColors.primary : const Color(0xFFE2E8F0),
+            width: isSelected ? 1.8 : 1,
           ),
           boxShadow: [
             if (isSelected)
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.15),
-                blurRadius: 20,
-                offset: const Offset(0, 7),
-              )
+              BoxShadow(color: AppColors.primary.withValues(alpha: 0.12), blurRadius: 16, offset: const Offset(0, 4))
             else
-              const BoxShadow(
-                color: Color(0x08000000),
-                blurRadius: 6,
-                offset: Offset(0, 2),
-              ),
+              const BoxShadow(color: Color(0x06000000), blurRadius: 4, offset: Offset(0, 2)),
           ],
         ),
         child: Row(
           children: [
+            // Check circle
             AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              width: 26,
-              height: 26,
+              duration: const Duration(milliseconds: 220),
+              width: 24,
+              height: 24,
               decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.primary
-                    : const Color(0xFFECF0FB),
+                color: isSelected ? AppColors.primary : const Color(0xFFECF0FB),
                 shape: BoxShape.circle,
               ),
-              child: isSelected
-                  ? const Icon(Icons.check_rounded,
-                      color: Colors.white, size: 15)
-                  : null,
+              child: isSelected ? const Icon(Icons.check_rounded, color: Colors.white, size: 14) : null,
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 14),
+            // Icon box
             AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              width: 60,
-              height: 60,
+              duration: const Duration(milliseconds: 220),
+              width: 56,
+              height: 56,
               decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.primary.withValues(alpha: 0.1)
-                    : const Color(0xFFF0F4FF),
-                borderRadius: BorderRadius.circular(16),
+                color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : const Color(0xFFF0F4FF),
+                borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(
-                icon,
-                size: 30,
-                color: isSelected ? AppColors.primary : const Color(0xFF8A96B8),
-              ),
+              child: Icon(icon, size: 28, color: isSelected ? AppColors.primary : const Color(0xFF8A96B8)),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 14),
+            // Text
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -199,25 +180,17 @@ class _BranchCard extends StatelessWidget {
                   Text(
                     branch.nameAr,
                     style: TextStyle(
-                      fontFamily: 'Cairo',
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: isSelected
-                          ? AppColors.primary
-                          : AppColors.textPrimary,
+                      fontFamily: 'Cairo', fontSize: 17, fontWeight: FontWeight.bold,
+                      color: isSelected ? AppColors.primary : const Color(0xFF1E293B),
                     ),
                     textAlign: TextAlign.right,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 3),
                   Text(
                     branch.nameFr,
                     style: TextStyle(
-                      fontFamily: 'Cairo',
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: isSelected
-                          ? AppColors.primary.withValues(alpha: 0.7)
-                          : AppColors.textSecondary,
+                      fontFamily: 'Cairo', fontSize: 13, fontWeight: FontWeight.w600,
+                      color: isSelected ? AppColors.primary.withValues(alpha: 0.65) : const Color(0xFF94A3B8),
                     ),
                     textAlign: TextAlign.right,
                   ),
