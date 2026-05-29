@@ -12,6 +12,7 @@ type CalculatorSubject struct {
 	MaxMark         float64 `json:"max_mark"`
 	CalculationType string  `json:"calculation_type"`
 	IsRequired      bool    `json:"is_required"`
+	LearningPathID  int     `json:"learning_path_id"`
 }
 
 type CalculatorRepository struct {
@@ -34,7 +35,7 @@ func (r *CalculatorRepository) GetSubjectsForUser(userID int) ([]CalculatorSubje
 	var rows *sql.Rows
 	if bacBranchID.Valid {
 		rows, err = r.db.Query(`
-			SELECT s.id, s.name_ar, COALESCE(sc.coefficient,0), sc.max_mark, sc.calculation_type, sc.is_required
+			SELECT s.id, s.name_ar, COALESCE(sc.coefficient,0), sc.max_mark, sc.calculation_type, sc.is_required, sc.learning_path_id
 			FROM subject_coefficients sc
 			JOIN subjects s ON s.id = sc.subject_id
 			WHERE sc.learning_path_id = ? AND sc.bac_branch_id = ?
@@ -42,7 +43,7 @@ func (r *CalculatorRepository) GetSubjectsForUser(userID int) ([]CalculatorSubje
 		`, learningPathID, bacBranchID.Int64)
 	} else {
 		rows, err = r.db.Query(`
-			SELECT s.id, s.name_ar, COALESCE(sc.coefficient,0), sc.max_mark, sc.calculation_type, sc.is_required
+			SELECT s.id, s.name_ar, COALESCE(sc.coefficient,0), sc.max_mark, sc.calculation_type, sc.is_required, sc.learning_path_id
 			FROM subject_coefficients sc
 			JOIN subjects s ON s.id = sc.subject_id
 			WHERE sc.learning_path_id = ? AND sc.bac_branch_id IS NULL
@@ -57,7 +58,7 @@ func (r *CalculatorRepository) GetSubjectsForUser(userID int) ([]CalculatorSubje
 	var subjects []CalculatorSubject
 	for rows.Next() {
 		var cs CalculatorSubject
-		if err := rows.Scan(&cs.SubjectID, &cs.SubjectName, &cs.Coefficient, &cs.MaxMark, &cs.CalculationType, &cs.IsRequired); err != nil {
+		if err := rows.Scan(&cs.SubjectID, &cs.SubjectName, &cs.Coefficient, &cs.MaxMark, &cs.CalculationType, &cs.IsRequired, &cs.LearningPathID); err != nil {
 			return nil, err
 		}
 		subjects = append(subjects, cs)

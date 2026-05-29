@@ -41,15 +41,11 @@ export function LoginPage() {
         >
           {/* Header */}
           <div className="flex flex-col items-center mb-8">
-            <div
-              className="flex items-center justify-center rounded-2xl mb-4"
-              style={{ width: 64, height: 64, background: '#EFF6FF' }}
-            >
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z" fill="#2563EB"/>
-                <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" fill="#2563EB" opacity="0.7"/>
-              </svg>
-            </div>
+            <img
+              src="/logo_edurim.png"
+              alt="EduRim"
+              style={{ width: 80, height: 80, objectFit: 'contain', marginBottom: 12 }}
+            />
             <h1
               className="font-bold text-center"
               style={{ fontSize: 24, color: '#1E293B', fontFamily: 'Cairo' }}

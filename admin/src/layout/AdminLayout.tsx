@@ -58,13 +58,11 @@ export function AdminLayout() {
     <>
       {/* Logo */}
       <div className="flex items-center gap-3 px-5 py-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-        <div className="flex items-center justify-center rounded-xl flex-shrink-0"
-          style={{ width: 38, height: 38, background: '#2563EB' }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-            <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>
-            <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" opacity="0.8"/>
-          </svg>
-        </div>
+        <img
+          src="/logo_edurim.png"
+          alt="EduRim"
+          style={{ width: 38, height: 38, objectFit: 'contain', flexShrink: 0, borderRadius: 8, background: '#fff', padding: 2 }}
+        />
         <div className="flex-1">
           <p style={{ fontSize: 18, fontWeight: 700, color: '#fff', fontFamily: 'Cairo', lineHeight: 1.2 }}>Edurim</p>
           <p style={{ fontSize: 11, color: '#94A3B8', fontFamily: 'Cairo' }}>لوحة التحكم</p>

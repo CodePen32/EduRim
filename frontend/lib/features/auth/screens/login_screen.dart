@@ -72,15 +72,11 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 40),
-                Container(
+                Image.asset(
+                  'assets/images/logo_edurim.png',
                   width: 90,
                   height: 90,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 8))],
-                  ),
-                  child: const Center(child: Icon(Icons.school_rounded, size: 40, color: Colors.white)),
+                  fit: BoxFit.contain,
                 ),
                 const SizedBox(height: 24),
                 const Text('مرحباً بك في Edurim', style: TextStyle(fontFamily: 'Cairo', fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),

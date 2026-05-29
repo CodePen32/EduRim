@@ -88,14 +88,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: Column(
                     children: [
                       // ── Logo + tagline ──
-                      Container(
-                        width: 72,
-                        height: 72,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.08),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.school_rounded, size: 36, color: AppColors.primary),
+                      Image.asset(
+                        'assets/images/logo_edurim.png',
+                        width: 80,
+                        height: 80,
+                        fit: BoxFit.contain,
                       ),
                       const SizedBox(height: 12),
                       const Text(

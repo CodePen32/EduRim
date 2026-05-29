@@ -79,10 +79,12 @@ func (h *CalculatorHandler) Calculate(c *gin.Context) {
 		}
 	}
 
-	// Determine calculation type from first subject
+	// Determine calculation type and learning path from first subject
 	calcType := "weighted_average"
+	learningPathID := 0
 	if len(subjects) > 0 {
 		calcType = subjects[0].CalculationType
+		learningPathID = subjects[0].LearningPathID
 	}
 
 	// Validate marks against max_mark for each subject
@@ -149,16 +151,34 @@ func (h *CalculatorHandler) Calculate(c *gin.Context) {
 		return
 	}
 	average = weightedSum / totalCoef
-	if average >= 10 {
-		status = "ناجح"
-		message = "مبروك! لقد نجحت في هذا الدور"
-	} else if average >= 8 {
-		status = "غير ناجح"
-		message = "أنت قريب من النجاح، استمر في المجهود"
+
+	// learningPathID=2 → BEPC rules, learningPathID=3 → BAC rules
+	if learningPathID == 2 {
+		// BEPC: <7 failed, 7–<8.5 promoted, >=8.5 passed
+		if average >= 8.5 {
+			status = "ناجح"
+			message = "مبروك! لقد نجحت في شهادة التعليم الأساسي"
+		} else if average >= 7 {
+			status = "متجاوز"
+			message = "أنت في منطقة الاستدراك — بلغت حد التجاوز"
+		} else {
+			status = "راسب"
+			message = "لم تبلغ الحد الأدنى للنجاح — استمر في المجهود"
+		}
 	} else {
-		status = "غير ناجح"
-		message = "تحتاج إلى مزيد من الجهد والمراجعة"
+		// BAC (learningPathID=3): <8 failed, 8–<10 retake, >=10 passed
+		if average >= 10 {
+			status = "ناجح"
+			message = "مبروك! لقد نجحت في الباكالوريا"
+		} else if average >= 8 {
+			status = "استدراك"
+			message = "أنت في منطقة الاستدراك — يمكنك المحاولة في الدور الثاني"
+		} else {
+			status = "راسب"
+			message = "لم تبلغ الحد الأدنى للاستدراك — استمر في المجهود"
+		}
 	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"average":            average,
 		"max_total":          20.0,
@@ -167,5 +187,6 @@ func (h *CalculatorHandler) Calculate(c *gin.Context) {
 		"status":             status,
 		"message":            message,
 		"calculation_type":   "weighted_average",
+		"learning_path_id":   learningPathID,
 	})
 }
