@@ -73,8 +73,12 @@ func (c *Config) DSN() string {
 	if c.DBPassword != "" {
 		auth += ":" + c.DBPassword
 	}
+	tls := ""
+	if os.Getenv("DB_TLS") == "true" {
+		tls = "&tls=true"
+	}
 	return auth + "@tcp(" + c.DBHost + ":" + c.DBPort + ")/" + c.DBName +
-		"?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=True&loc=Local"
+		"?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=True&loc=Local" + tls
 }
 
 func getEnv(key, defaultVal string) string {
