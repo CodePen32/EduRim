@@ -330,7 +330,18 @@ func (h *AdminContentHandler) DeleteTeacher(c *gin.Context) {
 
 // ---- PAST EXAMS ----
 func (h *AdminContentHandler) GetPastExams(c *gin.Context) {
-	data, err := h.peRepo.GetFiltered(repositories.PastExamFilter{})
+	lpID, bacID := scopeFilters(c)
+	f := repositories.PastExamFilter{
+		LearningPathID: lpID,
+		BacBranchID:    bacID,
+	}
+	if v, err := strconv.Atoi(c.Query("subject_id")); err == nil {
+		f.SubjectID = v
+	}
+	if v, err := strconv.Atoi(c.Query("year")); err == nil {
+		f.Year = v
+	}
+	data, err := h.peRepo.GetFiltered(f)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "خطأ في الخادم"})
 		return

@@ -61,6 +61,7 @@ func Setup(r *gin.Engine, jwtSecret string, db *sql.DB) {
 	api.GET("/me/exercises", middleware.Auth(jwtSecret), exerciseHandler.GetMyExercises)
 	api.GET("/me/exercises/:id", middleware.Auth(jwtSecret), exerciseHandler.GetMyExerciseByID)
 	api.GET("/me/teachers", middleware.Auth(jwtSecret), teacherHandler.GetMyTeachers)
+	api.GET("/me/teachers/:id", middleware.Auth(jwtSecret), teacherHandler.GetMyTeacherByID)
 
 	// Teachers (مع دعم ?subject_id)
 	api.GET("/teachers", teacherHandler.GetTeachers)
@@ -120,7 +121,7 @@ func Setup(r *gin.Engine, jwtSecret string, db *sql.DB) {
 	calc.GET("/subjects", calcHandler.GetSubjects)
 	calc.POST("/calculate", calcHandler.Calculate)
 
-	// Past Exams (public)
+	// Past Exams — public routes (legacy, no level isolation)
 	peRepo := repositories.NewPastExamRepository(db)
 	peHandler := handlers.NewPastExamHandler(peRepo)
 	api.GET("/past-exams", peHandler.GetPastExams)
@@ -176,9 +177,11 @@ func Setup(r *gin.Engine, jwtSecret string, db *sql.DB) {
 	admin.DELETE("/announcements/:id", announcementHandler.DeleteAnnouncement)
 	admin.PATCH("/announcements/:id/toggle-active", announcementHandler.ToggleActive)
 
-	// Student Announcements (JWT protected)
+	// Student Announcements + Past Exams (JWT protected, level isolated)
 	me := api.Group("/me", middleware.Auth(jwtSecret))
 	me.GET("/announcements", announcementHandler.GetMyAnnouncements)
+	me.GET("/past-exams", peHandler.GetMyPastExams)
+	me.GET("/subjects/:id/past-exams", peHandler.GetMyPastExamsBySubject)
 
 	// Subscriptions
 	subRepo := repositories.NewSubscriptionRepository(db)

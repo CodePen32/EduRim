@@ -101,6 +101,7 @@ class _HomeContentState extends State<_HomeContent> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: const HomeTopBar(),
       endDrawer: HomeDrawer(user: _user),
       body: CustomScrollView(

@@ -47,6 +47,29 @@ func (h *TeacherHandler) GetTeacherByID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": teacher})
 }
 
+// GetMyTeacherByID — GET /api/me/teachers/:id (JWT required)
+// Returns a teacher only if their subject belongs to the authenticated user's educational level.
+func (h *TeacherHandler) GetMyTeacherByID(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "معرف غير صالح"})
+		return
+	}
+
+	lp, bac, ok := getUserLevel(c)
+	if !ok || lp == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"message": "الأستاذ غير موجود"})
+		return
+	}
+
+	teacher, err := h.repo.GetByIDForUser(id, lp, bac)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"message": "الأستاذ غير موجود"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": teacher})
+}
+
 // GetMyTeachers — GET /api/me/teachers (JWT required)
 // Returns only teachers whose subject belongs to the authenticated user's educational level.
 func (h *TeacherHandler) GetMyTeachers(c *gin.Context) {

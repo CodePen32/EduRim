@@ -69,6 +69,28 @@ func (r *PastExamRepository) GetFiltered(f PastExamFilter) ([]PastExam, error) {
 	return scanPastExams(rows)
 }
 
+// GetBySubjectForUser returns past exams for a subject, filtered by the user's LP and BAC.
+func (r *PastExamRepository) GetBySubjectForUser(subjectID, learningPathID, bacBranchID int) ([]PastExam, error) {
+	query := `SELECT pe.id, pe.learning_path_id, pe.bac_branch_id, pe.subject_id,
+		COALESCE(s.name_ar,''), pe.title, pe.year, COALESCE(pe.description,''),
+		COALESCE(pe.exam_file_url,''), COALESCE(pe.solution_file_url,''), COALESCE(pe.cover_image_url,''), pe.is_active
+		FROM past_exams pe JOIN subjects s ON s.id = pe.subject_id
+		WHERE pe.subject_id = ? AND pe.is_active = 1
+		AND pe.learning_path_id = ?`
+	args := []interface{}{subjectID, learningPathID}
+	if learningPathID == 3 && bacBranchID > 0 {
+		query += " AND (pe.bac_branch_id = ? OR pe.bac_branch_id IS NULL)"
+		args = append(args, bacBranchID)
+	}
+	query += " ORDER BY pe.year DESC"
+	rows, err := r.db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	return scanPastExams(rows)
+}
+
 func (r *PastExamRepository) GetBySubject(subjectID int) ([]PastExam, error) {
 	rows, err := r.db.Query(`SELECT pe.id, pe.learning_path_id, pe.bac_branch_id, pe.subject_id,
 		COALESCE(s.name_ar,''), pe.title, pe.year, COALESCE(pe.description,''),

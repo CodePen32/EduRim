@@ -12,13 +12,13 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
   if (!open) return null
   return (
     <div
-      style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px' }}
       dir="rtl"
     >
       {/* Overlay */}
       <div
         onClick={onClose}
-        style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)' }}
+        style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)' }}
       />
 
       {/* Modal box */}
@@ -27,13 +27,14 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
           position: 'relative',
           background: '#fff',
           borderRadius: 20,
-          boxShadow: '0 8px 40px rgba(0,0,0,0.14)',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.18)',
           width: '100%',
           maxWidth: 520,
-          margin: '0 16px',
-          maxHeight: '90vh',
+          maxHeight: '92vh',
           display: 'flex',
           flexDirection: 'column',
+          // Prevent overflow on tiny screens
+          minWidth: 0,
         }}
       >
         {/* Header */}
@@ -42,18 +43,19 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '18px 24px',
+            padding: '16px 20px',
             borderBottom: '1px solid #E2E8F0',
+            flexShrink: 0,
           }}
         >
-          <p style={{ fontSize: 16, fontWeight: 700, color: '#1E293B', fontFamily: 'Cairo' }}>{title}</p>
+          <p style={{ fontSize: 16, fontWeight: 700, color: '#1E293B', fontFamily: 'Cairo', margin: 0 }}>{title}</p>
           <button
             onClick={onClose}
             style={{
               width: 32, height: 32, borderRadius: 8, border: 'none',
               background: 'transparent', cursor: 'pointer', display: 'flex',
               alignItems: 'center', justifyContent: 'center', color: '#94A3B8',
-              transition: 'background 0.15s',
+              transition: 'background 0.15s', flexShrink: 0,
             }}
             onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#F1F5F9' }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
@@ -64,8 +66,8 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
           </button>
         </div>
 
-        {/* Body */}
-        <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
+        {/* Body — scrollable */}
+        <div style={{ padding: '18px 20px', overflowY: 'auto', flex: 1 }}>
           {children}
         </div>
 
@@ -73,13 +75,15 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
         {footer && (
           <div
             style={{
-              padding: '16px 24px',
+              padding: '14px 20px',
               borderTop: '1px solid #E2E8F0',
               display: 'flex',
               gap: 10,
               justifyContent: 'flex-end',
+              flexWrap: 'wrap',
               background: '#FAFAFA',
               borderRadius: '0 0 20px 20px',
+              flexShrink: 0,
             }}
           >
             {footer}

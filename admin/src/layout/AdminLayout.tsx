@@ -1,4 +1,5 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAdminScope } from '../context/AdminScopeContext'
 import { adminLogout } from '../auth/useAdminAuth'
 
@@ -10,147 +11,230 @@ const SCOPE_COLOR: Record<string, string> = {
 }
 
 const NAV = [
-  { to: '/dashboard',     label: 'لوحة القسم',          icon: DashIcon },
-  { to: '/subjects',      label: 'المواد',               icon: BookIcon },
-  { to: '/lessons',       label: 'الدروس',               icon: PlayIcon },
-  { to: '/exercises',     label: 'التمارين',             icon: QuizIcon },
-  { to: '/past-exams',    label: 'مواضيع الامتحانات',    icon: HistoryIcon },
-  { to: '/teachers',      label: 'الأساتذة',             icon: PersonIcon },
-  { to: '/users',         label: 'الطلاب',               icon: PeopleIcon },
-  { to: '/notifications',  label: 'الإشعارات',            icon: BellIcon },
-  { to: '/announcements', label: 'الإعلانات',            icon: MegaphoneIcon },
-  { to: '/subscription-plans',   label: 'خطط الاشتراك',        icon: CreditCardIcon },
-  { to: '/user-subscriptions',   label: 'اشتراكات الطلاب',     icon: CardCheckIcon },
-  { to: '/subscription-requests', label: 'طلبات الاشتراك',      icon: RequestIcon },
+  { to: '/dashboard',               label: 'لوحة القسم',        icon: DashIcon },
+  { to: '/subjects',                label: 'المواد',             icon: BookIcon },
+  { to: '/lessons',                 label: 'الدروس',             icon: PlayIcon },
+  { to: '/exercises',               label: 'التمارين',           icon: QuizIcon },
+  { to: '/past-exams',              label: 'مواضيع الامتحانات',  icon: HistoryIcon },
+  { to: '/teachers',                label: 'الأساتذة',           icon: PersonIcon },
+  { to: '/users',                   label: 'الطلاب',             icon: PeopleIcon },
+  { to: '/notifications',           label: 'الإشعارات',          icon: BellIcon },
+  { to: '/announcements',           label: 'الإعلانات',          icon: MegaphoneIcon },
+  { to: '/subscription-plans',      label: 'خطط الاشتراك',      icon: CreditCardIcon },
+  { to: '/user-subscriptions',      label: 'اشتراكات الطلاب',   icon: CardCheckIcon },
+  { to: '/subscription-requests',   label: 'طلبات الاشتراك',    icon: RequestIcon },
 ]
 
 export function AdminLayout() {
   const { scope, clearScope } = useAdminScope()
   const navigate = useNavigate()
+  const location = useLocation()
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const drawerRef = useRef<HTMLDivElement>(null)
   const scopeColor = scope ? (SCOPE_COLOR[scope.label] ?? '#2563EB') : '#2563EB'
+
+  // Close drawer on route change
+  useEffect(() => { setDrawerOpen(false) }, [location.pathname])
+
+  // Close on outside click
+  useEffect(() => {
+    if (!drawerOpen) return
+    function onDown(e: MouseEvent) {
+      if (drawerRef.current && !drawerRef.current.contains(e.target as Node)) {
+        setDrawerOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [drawerOpen])
 
   function handleChangeScope() {
     clearScope()
     navigate('/select-scope')
+    setDrawerOpen(false)
   }
+
+  const sidebarContent = (
+    <>
+      {/* Logo */}
+      <div className="flex items-center gap-3 px-5 py-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        <div className="flex items-center justify-center rounded-xl flex-shrink-0"
+          style={{ width: 38, height: 38, background: '#2563EB' }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+            <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>
+            <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" opacity="0.8"/>
+          </svg>
+        </div>
+        <div className="flex-1">
+          <p style={{ fontSize: 18, fontWeight: 700, color: '#fff', fontFamily: 'Cairo', lineHeight: 1.2 }}>Edurim</p>
+          <p style={{ fontSize: 11, color: '#94A3B8', fontFamily: 'Cairo' }}>لوحة التحكم</p>
+        </div>
+        {/* X button — mobile only */}
+        <button
+          className="lg:hidden flex items-center justify-center rounded-lg"
+          onClick={() => setDrawerOpen(false)}
+          style={{ width: 32, height: 32, background: 'rgba(255,255,255,0.08)', border: 'none', cursor: 'pointer', flexShrink: 0 }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#94A3B8">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+          </svg>
+        </button>
+      </div>
+
+      {/* Current scope */}
+      {scope && (
+        <div className="px-4 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+          <p style={{ fontSize: 11, color: '#94A3B8', fontFamily: 'Cairo', marginBottom: 8 }}>القسم الحالي</p>
+          <div className="rounded-xl px-3 py-2.5"
+            style={{ background: scopeColor + '20', border: `1px solid ${scopeColor}40` }}>
+            <p style={{ fontSize: 16, fontWeight: 700, color: scopeColor, fontFamily: 'Cairo', textAlign: 'center' }}>
+              {scope.label}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Navigation */}
+      <nav className="flex-1 px-3 py-3 overflow-y-auto">
+        {NAV.map(({ to, label, icon: Icon }) => (
+          <NavLink
+            key={to}
+            to={to}
+            style={({ isActive }) => ({
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '10px 12px',
+              borderRadius: 8,
+              marginBottom: 2,
+              fontSize: 13,
+              fontFamily: 'Cairo',
+              fontWeight: 500,
+              textDecoration: 'none',
+              transition: 'all 0.15s',
+              background: isActive ? '#2563EB' : 'transparent',
+              color: isActive ? '#fff' : '#CBD5E1',
+            })}
+            className={({ isActive }) => isActive ? '' : 'hover-nav-item'}
+          >
+            {({ isActive }) => (
+              <>
+                <Icon size={18} color={isActive ? '#fff' : '#94A3B8'} />
+                {label}
+              </>
+            )}
+          </NavLink>
+        ))}
+      </nav>
+
+      {/* Bottom actions */}
+      <div className="px-3 pb-4 pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}>
+        <button
+          onClick={handleChangeScope}
+          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all"
+          style={{ fontSize: 13, color: '#94A3B8', fontFamily: 'Cairo', background: 'rgba(255,255,255,0.07)', marginBottom: 4, cursor: 'pointer', border: 'none' }}
+        >
+          <RefreshIcon size={16} color="#94A3B8" />
+          تغيير القسم
+        </button>
+        <button
+          onClick={() => adminLogout()}
+          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all"
+          style={{ fontSize: 13, color: '#94A3B8', fontFamily: 'Cairo', background: 'transparent', cursor: 'pointer', border: 'none' }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = '#F87171'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.08)' }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = '#94A3B8'; (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+        >
+          <LogoutIcon size={16} color="currentColor" />
+          تسجيل الخروج
+        </button>
+      </div>
+    </>
+  )
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: '#F1F5F9' }} dir="rtl">
+      <style>{`
+        .hover-nav-item:hover { background: rgba(255,255,255,0.07) !important; color: #fff !important; }
+        /* Drawer slide-in from right (RTL) */
+        .drawer-enter { transform: translateX(0); }
+        @media (max-width: 1023px) {
+          .admin-sidebar-desktop { display: none !important; }
+        }
+      `}</style>
 
-      {/* ── Sidebar ── */}
+      {/* ── Desktop Sidebar (hidden on mobile) ── */}
       <aside
-        className="flex flex-col flex-shrink-0 overflow-y-auto"
+        className="admin-sidebar-desktop flex flex-col flex-shrink-0 overflow-hidden"
         style={{ width: 230, background: '#1E293B' }}
       >
-        {/* Logo */}
-        <div
-          className="flex items-center gap-3 px-5 py-5"
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
-        >
-          <div
-            className="flex items-center justify-center rounded-xl flex-shrink-0"
-            style={{ width: 38, height: 38, background: '#2563EB' }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-              <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>
-              <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" opacity="0.8"/>
-            </svg>
-          </div>
-          <div>
-            <p style={{ fontSize: 18, fontWeight: 700, color: '#fff', fontFamily: 'Cairo', lineHeight: 1.2 }}>Edurim</p>
-            <p style={{ fontSize: 11, color: '#94A3B8', fontFamily: 'Cairo' }}>لوحة التحكم</p>
-          </div>
-        </div>
-
-        {/* Current scope */}
-        {scope && (
-          <div className="px-4 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-            <p style={{ fontSize: 11, color: '#94A3B8', fontFamily: 'Cairo', marginBottom: 8 }}>القسم الحالي</p>
-            <div
-              className="rounded-xl px-3 py-2.5"
-              style={{
-                background: scopeColor + '20',
-                border: `1px solid ${scopeColor}40`,
-              }}
-            >
-              <p style={{ fontSize: 16, fontWeight: 700, color: scopeColor, fontFamily: 'Cairo', textAlign: 'center' }}>
-                {scope.label}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Navigation */}
-        <nav className="flex-1 px-3 py-3">
-          {NAV.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              style={({ isActive }) => ({
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '10px 12px',
-                borderRadius: 8,
-                marginBottom: 2,
-                fontSize: 13,
-                fontFamily: 'Cairo',
-                fontWeight: 500,
-                textDecoration: 'none',
-                transition: 'all 0.15s',
-                background: isActive ? '#2563EB' : 'transparent',
-                color: isActive ? '#fff' : '#CBD5E1',
-              })}
-              className={({ isActive }) => isActive ? '' : 'hover-nav-item'}
-            >
-              {({ isActive }) => (
-                <>
-                  <Icon size={18} color={isActive ? '#fff' : '#94A3B8'} />
-                  {label}
-                </>
-              )}
-            </NavLink>
-          ))}
-        </nav>
-
-        {/* Bottom: change scope + logout */}
-        <div className="px-3 pb-4 pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-          <button
-            onClick={handleChangeScope}
-            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all"
-            style={{ fontSize: 13, color: '#94A3B8', fontFamily: 'Cairo', background: 'rgba(255,255,255,0.07)', marginBottom: 4, cursor: 'pointer', border: 'none' }}
-          >
-            <RefreshIcon size={16} color="#94A3B8" />
-            تغيير القسم
-          </button>
-          <button
-            onClick={() => adminLogout()}
-            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all"
-            style={{ fontSize: 13, color: '#94A3B8', fontFamily: 'Cairo', background: 'transparent', cursor: 'pointer', border: 'none' }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = '#F87171'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.08)' }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = '#94A3B8'; (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
-          >
-            <LogoutIcon size={16} color="currentColor" />
-            تسجيل الخروج
-          </button>
-        </div>
+        {sidebarContent}
       </aside>
 
-      {/* ── Main content ── */}
-      <main className="flex-1 overflow-y-auto" style={{ background: '#F1F5F9' }}>
-        <style>{`
-          .hover-nav-item:hover {
-            background: rgba(255,255,255,0.07) !important;
-            color: #fff !important;
-          }
-        `}</style>
-        <Outlet />
-      </main>
+      {/* ── Mobile Drawer Overlay ── */}
+      {drawerOpen && (
+        <div
+          className="fixed inset-0 lg:hidden"
+          style={{ zIndex: 40, background: 'rgba(0,0,0,0.45)' }}
+          onClick={() => setDrawerOpen(false)}
+        />
+      )}
+
+      {/* ── Mobile Drawer ── */}
+      <div
+        ref={drawerRef}
+        className="fixed top-0 right-0 h-full flex flex-col lg:hidden"
+        style={{
+          width: 260,
+          background: '#1E293B',
+          zIndex: 50,
+          transform: drawerOpen ? 'translateX(0)' : 'translateX(100%)',
+          transition: 'transform 0.28s cubic-bezier(0.4,0,0.2,1)',
+          boxShadow: drawerOpen ? '-4px 0 24px rgba(0,0,0,0.25)' : 'none',
+        }}
+      >
+        {sidebarContent}
+      </div>
+
+      {/* ── Main Area ── */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+
+        {/* Mobile top bar */}
+        <header
+          className="flex items-center justify-between px-4 py-3 lg:hidden flex-shrink-0"
+          style={{ background: '#1E293B', borderBottom: '1px solid rgba(255,255,255,0.08)' }}
+        >
+          {/* Scope badge */}
+          {scope ? (
+            <div className="rounded-lg px-2.5 py-1"
+              style={{ background: scopeColor + '25', border: `1px solid ${scopeColor}50` }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: scopeColor, fontFamily: 'Cairo' }}>{scope.label}</p>
+            </div>
+          ) : <div />}
+
+          {/* Logo center */}
+          <p style={{ fontSize: 16, fontWeight: 700, color: '#fff', fontFamily: 'Cairo' }}>Edurim</p>
+
+          {/* Hamburger */}
+          <button
+            onClick={() => setDrawerOpen(true)}
+            style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(255,255,255,0.1)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#CBD5E1">
+              <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+            </svg>
+          </button>
+        </header>
+
+        {/* Content */}
+        <main className="flex-1 overflow-y-auto overflow-x-hidden" style={{ background: '#F1F5F9' }}>
+          <Outlet />
+        </main>
+      </div>
     </div>
   )
 }
 
-/* ── Inline SVG Icons (no dependency) ── */
+/* ── Inline SVG Icons ── */
 function DashIcon({ size, color }: { size: number; color: string }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill={color}><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
 }

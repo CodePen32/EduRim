@@ -92,6 +92,31 @@ func (r *TeacherRepository) GetFilteredForUser(subjectID, learningPathID, bacBra
 	return teachers, rows.Err()
 }
 
+// GetByIDForUser returns a teacher only if their subject belongs to the user's LP/BAC.
+func (r *TeacherRepository) GetByIDForUser(id, learningPathID, bacBranchID int) (*models.Teacher, error) {
+	if r.db == nil {
+		return nil, ErrNoDB
+	}
+	query := `SELECT t.id, t.full_name, COALESCE(t.subject_id,0),
+	                 COALESCE(t.avatar_url,''), COALESCE(t.bio,''), t.created_at
+	          FROM teachers t
+	          JOIN subjects s ON s.id = t.subject_id
+	          WHERE t.id = ? AND s.learning_path_id = ?`
+	args := []interface{}{id, learningPathID}
+	if learningPathID == 3 && bacBranchID > 0 {
+		query += " AND s.bac_branch_id = ?"
+		args = append(args, bacBranchID)
+	}
+	var t models.Teacher
+	err := r.db.QueryRow(query, args...).Scan(
+		&t.ID, &t.FullName, &t.SubjectID, &t.AvatarURL, &t.Bio, &t.CreatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &t, nil
+}
+
 func (r *TeacherRepository) GetByID(id int) (*models.Teacher, error) {
 	if r.db == nil {
 		return nil, ErrNoDB

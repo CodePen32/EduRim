@@ -20,49 +20,60 @@ export function ScopeSelectPage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-6"
-      style={{ background: '#F1F5F9' }}
+      className="min-h-screen flex items-center justify-center"
+      style={{ background: '#F1F5F9', padding: '24px 16px' }}
       dir="rtl"
     >
       <div style={{ width: '100%', maxWidth: 480 }}>
 
         {/* Header */}
-        <div className="text-center mb-10">
+        <div style={{ textAlign: 'center', marginBottom: 36 }}>
           <div
-            className="flex items-center justify-center rounded-2xl mx-auto mb-4"
-            style={{ width: 64, height: 64, background: '#EFF6FF' }}
+            className="flex items-center justify-center rounded-2xl mx-auto"
+            style={{ width: 60, height: 60, background: '#EFF6FF', marginBottom: 16 }}
           >
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="#2563EB">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="#2563EB">
               <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>
               <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" opacity="0.7"/>
             </svg>
           </div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1E293B', fontFamily: 'Cairo' }}>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: '#1E293B', fontFamily: 'Cairo', margin: 0 }}>
             اختر القسم الدراسي
           </h1>
-          <p style={{ fontSize: 14, color: '#64748B', fontFamily: 'Cairo', marginTop: 6 }}>
+          <p style={{ fontSize: 13, color: '#64748B', fontFamily: 'Cairo', marginTop: 6 }}>
             ستُصفَّح جميع البيانات حسب القسم المختار
           </p>
         </div>
 
-        {/* Section cards */}
-        <div className="grid grid-cols-2 gap-4">
+        {/* Section cards — responsive grid */}
+        <div className="scope-cards-grid">
           {SECTIONS.map((s) => (
             <button
               key={s.label}
               onClick={() => select(s)}
-              className="rounded-2xl p-7 text-center transition-all cursor-pointer"
               style={{
                 background: s.color,
                 border: 'none',
+                borderRadius: 18,
+                padding: '24px 16px',
+                textAlign: 'center',
+                cursor: 'pointer',
                 boxShadow: `0 4px 20px ${s.color}40`,
                 transform: 'translateY(0)',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                width: '100%',
               }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-3px)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 8px 28px ${s.color}50` }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 4px 20px ${s.color}40` }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-3px)'
+                ;(e.currentTarget as HTMLButtonElement).style.boxShadow = `0 8px 28px ${s.color}55`
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)'
+                ;(e.currentTarget as HTMLButtonElement).style.boxShadow = `0 4px 20px ${s.color}40`
+              }}
             >
-              <p style={{ fontSize: 22, fontWeight: 700, color: '#fff', fontFamily: 'Cairo', marginBottom: 6 }}>{s.label}</p>
-              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', fontFamily: 'Cairo' }}>{s.description}</p>
+              <p style={{ fontSize: 20, fontWeight: 700, color: '#fff', fontFamily: 'Cairo', marginBottom: 6, margin: '0 0 6px' }}>{s.label}</p>
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.82)', fontFamily: 'Cairo', margin: 0 }}>{s.description}</p>
             </button>
           ))}
         </div>
