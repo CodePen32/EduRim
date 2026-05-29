@@ -197,6 +197,19 @@ func (r *SubscriptionRepository) GetUserSubscription(userID uint) (models.MySubs
 	return resp, nil
 }
 
+// HasActiveSubscription returns true if user has an active, non-expired subscription.
+func (r *SubscriptionRepository) HasActiveSubscription(userID uint) bool {
+	if r.db == nil {
+		return false
+	}
+	var count int
+	r.db.QueryRow(
+		`SELECT COUNT(*) FROM user_subscriptions WHERE user_id = ? AND is_active = 1 AND end_date >= CURDATE()`,
+		userID,
+	).Scan(&count)
+	return count > 0
+}
+
 // CreateUserSubscription inserts a new user subscription
 func (r *SubscriptionRepository) CreateUserSubscription(sub models.UserSubscription) error {
 	if r.db == nil {

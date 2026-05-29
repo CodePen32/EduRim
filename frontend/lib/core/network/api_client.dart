@@ -2,10 +2,13 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiClient {
-  // ─── اختر الـ baseUrl حسب المنصة ──────────────────────────────────────
-  // Flutter Web  → localhost:8081
-  // Android Emu  → 10.0.2.2:8081  (غيّر السطر أدناه عند التشغيل على المحاكي)
-  static const String baseUrl = 'http://localhost:8081/api';
+  // ─── API base URL ─────────────────────────────────────────────────────
+  // Dev:  flutter run  (no --dart-define needed → defaults to localhost)
+  // Prod: flutter build web --dart-define=API_BASE_URL=https://api.edurim.com/api
+  static const String baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://localhost:8081/api',
+  );
 
   String? _token;
 

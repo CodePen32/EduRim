@@ -24,7 +24,7 @@ func (h *TeacherHandler) GetTeachers(c *gin.Context) {
 
 	teachers, err := h.repo.GetFiltered(subjectID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب الأساتذة", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب الأساتذة"})
 		return
 	}
 	if teachers == nil {
@@ -87,7 +87,7 @@ func (h *TeacherHandler) GetMyTeachers(c *gin.Context) {
 
 	teachers, err := h.repo.GetFilteredForUser(subjectID, lp, bac)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب الأساتذة", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب الأساتذة"})
 		return
 	}
 	if teachers == nil {

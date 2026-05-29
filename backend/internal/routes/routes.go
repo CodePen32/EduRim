@@ -3,6 +3,7 @@ package routes
 import (
 	"database/sql"
 	"net/http"
+	"time"
 
 	"edurim/backend/internal/handlers"
 	"edurim/backend/internal/middleware"
@@ -13,6 +14,11 @@ import (
 
 func Setup(r *gin.Engine, jwtSecret string, db *sql.DB) {
 	r.Use(middleware.CORS())
+	r.Use(middleware.SecurityHeaders())
+
+	// Rate limiters
+	authLimiter   := middleware.RateLimit(5, time.Minute)
+	uploadLimiter := middleware.RateLimit(10, time.Minute)
 
 	api := r.Group("/api")
 
@@ -23,8 +29,8 @@ func Setup(r *gin.Engine, jwtSecret string, db *sql.DB) {
 	// Auth
 	auth := api.Group("/auth")
 	authHandler := handlers.NewAuthHandler(jwtSecret)
-	auth.POST("/register", authHandler.Register)
-	auth.POST("/login", authHandler.Login)
+	auth.POST("/register", authLimiter, authHandler.Register)
+	auth.POST("/login", authLimiter, authHandler.Login)
 	auth.GET("/me", middleware.Auth(jwtSecret), authHandler.Me)
 	auth.PUT("/profile", middleware.Auth(jwtSecret), authHandler.UpdateProfile)
 
@@ -36,11 +42,14 @@ func Setup(r *gin.Engine, jwtSecret string, db *sql.DB) {
 	lessonRepo := repositories.NewLessonRepository(db)
 	exerciseRepo := repositories.NewExerciseRepository(db)
 
+	// Subscription repo needed early for paid content protection
+	subRepo := repositories.NewSubscriptionRepository(db)
+
 	// Handlers
 	lpHandler := handlers.NewLearningPathHandler(lpRepo, bacRepo)
 	subjectHandler := handlers.NewSubjectHandler(subjectRepo)
 	teacherHandler := handlers.NewTeacherHandler(teacherRepo)
-	lessonHandler := handlers.NewLessonHandler(lessonRepo)
+	lessonHandler := handlers.NewLessonHandler(lessonRepo, subRepo)
 	exerciseHandler := handlers.NewExerciseHandler(exerciseRepo)
 	meHandler := handlers.NewMeHandler(subjectRepo)
 
@@ -128,13 +137,13 @@ func Setup(r *gin.Engine, jwtSecret string, db *sql.DB) {
 	api.GET("/subjects/:id/past-exams", peHandler.GetBySubject)
 
 	// File uploads (admin only)
-	api.POST("/admin/uploads", middleware.AdminAuth(jwtSecret), handlers.UploadHandler)
+	api.POST("/admin/uploads", middleware.AdminAuth(jwtSecret), uploadLimiter, handlers.UploadHandler)
 
 	// Admin Auth
 	adminRepo := repositories.NewAdminRepository(db)
 	adminAuthHandler := handlers.NewAdminAuthHandler(adminRepo, jwtSecret)
 	adminAuth := api.Group("/admin/auth")
-	adminAuth.POST("/login", adminAuthHandler.Login)
+	adminAuth.POST("/login", authLimiter, adminAuthHandler.Login)
 	adminAuth.GET("/me", middleware.AdminAuth(jwtSecret), adminAuthHandler.Me)
 
 	// Admin Content
@@ -184,13 +193,12 @@ func Setup(r *gin.Engine, jwtSecret string, db *sql.DB) {
 	me.GET("/subjects/:id/past-exams", peHandler.GetMyPastExamsBySubject)
 
 	// Subscriptions
-	subRepo := repositories.NewSubscriptionRepository(db)
 	subHandler := handlers.NewSubscriptionHandler(subRepo)
 	me.GET("/subscription", subHandler.GetMySubscription)
-	me.POST("/uploads", handlers.UploadHandler) // رفع إيصالات الاشتراك
+	me.POST("/uploads", uploadLimiter, handlers.UploadHandler)
 	me.GET("/subscription-plans", subHandler.GetMyPlans)
 	me.GET("/subscription-requests", subHandler.GetMyRequests)
-	me.POST("/subscription-requests", subHandler.CreateRequest)
+	me.POST("/subscription-requests", authLimiter, subHandler.CreateRequest)
 	admin.GET("/subscription-plans", subHandler.GetAdminPlans)
 	admin.POST("/subscription-plans", subHandler.CreatePlan)
 	admin.PUT("/subscription-plans/:id", subHandler.UpdatePlan)

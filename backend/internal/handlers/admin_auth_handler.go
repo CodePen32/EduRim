@@ -67,8 +67,21 @@ func (h *AdminAuthHandler) Login(c *gin.Context) {
 
 // GET /api/admin/auth/me
 func (h *AdminAuthHandler) Me(c *gin.Context) {
-	adminID, _ := c.Get("admin_id")
-	id, _ := adminID.(float64)
+	adminID, exists := c.Get("admin_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "غير مصرح"})
+		return
+	}
+	var id float64
+	switch v := adminID.(type) {
+	case float64:
+		id = v
+	case uint:
+		id = float64(v)
+	default:
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "رمز غير صالح"})
+		return
+	}
 	admin, err := h.repo.GetByID(int(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "المسؤول غير موجود"})

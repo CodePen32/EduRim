@@ -2,12 +2,11 @@ package handlers
 
 import (
 	"fmt"
-	"io"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strings"
-	"time"
+
+	"edurim/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,9 +17,26 @@ var allowedExts = map[string]bool{
 	".mp4": true, ".webm": true, ".mov": true,
 }
 
+// allowedContentTypes maps extensions to permitted MIME types.
+var allowedContentTypes = map[string][]string{
+	".jpg":  {"image/jpeg"},
+	".jpeg": {"image/jpeg"},
+	".png":  {"image/png"},
+	".webp": {"image/webp"},
+	".pdf":  {"application/pdf"},
+	".mp4":  {"video/mp4"},
+	".webm": {"video/webm"},
+	".mov":  {"video/quicktime", "video/mp4"},
+}
+
 var maxSizes = map[string]int64{
 	".mp4": 200 * 1024 * 1024, ".webm": 200 * 1024 * 1024, ".mov": 200 * 1024 * 1024,
 }
+
+// StorageSvc is set once at startup from main/routes via SetStorageService.
+var StorageSvc services.StorageService
+
+func SetStorageService(s services.StorageService) { StorageSvc = s }
 
 func UploadHandler(c *gin.Context) {
 	file, header, err := c.Request.FormFile("file")
@@ -36,6 +52,28 @@ func UploadHandler(c *gin.Context) {
 		return
 	}
 
+	// Verify Content-Type header matches the declared extension
+	ct := header.Header.Get("Content-Type")
+	if ct != "" {
+		// Strip params like "; boundary=..."
+		if idx := strings.Index(ct, ";"); idx != -1 {
+			ct = strings.TrimSpace(ct[:idx])
+		}
+		ct = strings.ToLower(ct)
+		allowed := allowedContentTypes[ext]
+		ok := false
+		for _, a := range allowed {
+			if ct == a {
+				ok = true
+				break
+			}
+		}
+		if !ok {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "نوع المحتوى لا يطابق امتداد الملف"})
+			return
+		}
+	}
+
 	maxSize := int64(20 * 1024 * 1024)
 	if m, ok := maxSizes[ext]; ok {
 		maxSize = m
@@ -46,38 +84,36 @@ func UploadHandler(c *gin.Context) {
 		return
 	}
 
+	// Determine folder from ?type query param
 	uploadType := c.DefaultQuery("type", "covers")
-	var dir string
 	isVideo := ext == ".mp4" || ext == ".webm" || ext == ".mov"
+	var folder string
 	if isVideo {
-		dir = "uploads/videos"
+		folder = "videos"
 	} else {
 		switch uploadType {
 		case "images":
-			dir = "uploads/images"
+			folder = "images"
 		case "files":
-			dir = "uploads/files"
+			folder = "files"
+		case "receipts":
+			folder = "receipts"
 		default:
-			dir = "uploads/covers"
+			folder = "covers"
 		}
 	}
 
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "خطأ في الخادم"})
+	if StorageSvc == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "storage service not initialized"})
 		return
 	}
 
-	filename := fmt.Sprintf("%d%s", time.Now().UnixNano(), ext)
-	destPath := filepath.Join(dir, filename)
-
-	dest, err := os.Create(destPath)
+	url, err := StorageSvc.Upload(c.Request.Context(), folder, file, header)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "خطأ في حفظ الملف"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "خطأ في رفع الملف"})
 		return
 	}
-	defer dest.Close()
-	io.Copy(dest, file)
 
-	url := "/" + strings.ReplaceAll(destPath, "\\", "/")
+	// Response format unchanged: {"url": "..."}
 	c.JSON(http.StatusOK, gin.H{"url": url})
 }

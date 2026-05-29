@@ -16,12 +16,25 @@ frontend_err.log
 
 # ── Binary / executable ──
 backend/backend_server.exe
+backend/backend_server.exe~
 backend/backend_server
+backend/edurim-api.exe
+backend/edurim-api
+backend/*.exe
+backend/*.exe~
 
 # ── Environment ──
 .env
 .env.local
 .env.production
+backend/.env
+backend/.env.production
+admin/.env
+admin/.env.production
+
+# ── Database dumps (may contain real data) ──
+*.sql.bak
+*_backup_for_railway.sql
 
 # ── Build outputs ──
 frontend/build/

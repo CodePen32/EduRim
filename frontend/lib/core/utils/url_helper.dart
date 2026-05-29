@@ -2,7 +2,12 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:web/web.dart' as web;
 
-const String _baseUrl = 'http://localhost:8081';
+// Dev:  flutter run  (no --dart-define needed → defaults to localhost)
+// Prod: flutter build web --dart-define=FILES_BASE_URL=https://files.edurim.com
+const String _baseUrl = String.fromEnvironment(
+  'FILES_BASE_URL',
+  defaultValue: 'http://localhost:8081',
+);
 
 String buildFileUrl(String? path) {
   if (path == null) return '';

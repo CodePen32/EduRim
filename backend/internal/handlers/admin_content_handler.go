@@ -143,7 +143,7 @@ func (h *AdminContentHandler) CreateLesson(c *gin.Context) {
 		CoverImageURL string `json:"cover_image_url"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "تنسيق البيانات غير صحيح: " + err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "تنسيق البيانات غير صحيح"})
 		return
 	}
 	if req.Title == "" {
@@ -218,7 +218,7 @@ func (h *AdminContentHandler) CreateExercise(c *gin.Context) {
 		CoverImageURL    string `json:"cover_image_url"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "تنسيق البيانات غير صحيح: " + err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "تنسيق البيانات غير صحيح"})
 		return
 	}
 	if req.Title == "" {

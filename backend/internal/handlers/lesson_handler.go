@@ -13,11 +13,12 @@ import (
 )
 
 type LessonHandler struct {
-	repo *repositories.LessonRepository
+	repo     *repositories.LessonRepository
+	subRepo  *repositories.SubscriptionRepository
 }
 
-func NewLessonHandler(repo *repositories.LessonRepository) *LessonHandler {
-	return &LessonHandler{repo: repo}
+func NewLessonHandler(repo *repositories.LessonRepository, subRepo *repositories.SubscriptionRepository) *LessonHandler {
+	return &LessonHandler{repo: repo, subRepo: subRepo}
 }
 
 // getUserLevel reads learning_path_id and bac_branch_id for the authenticated user.
@@ -50,7 +51,7 @@ func (h *LessonHandler) GetLessons(c *gin.Context) {
 
 	lessons, err := h.repo.GetFiltered(subjectID, teacherID, unitID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب الدروس", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب الدروس"})
 		return
 	}
 	if lessons == nil {
@@ -92,7 +93,7 @@ func (h *LessonHandler) GetMyLessons(c *gin.Context) {
 
 	lessons, err := h.repo.GetFilteredForUser(subjectID, teacherID, unitID, lp, bac)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب الدروس", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب الدروس"})
 		return
 	}
 	if lessons == nil {
@@ -121,5 +122,17 @@ func (h *LessonHandler) GetMyLessonByID(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"message": "الدرس غير موجود"})
 		return
 	}
+
+	// Paid content protection: strip URLs if user has no active subscription
+	if !lesson.IsFree && h.subRepo != nil {
+		userID := getUserID(c)
+		if !h.subRepo.HasActiveSubscription(uint(userID)) {
+			lesson.VideoURL = ""
+			lesson.SummaryURL = ""
+			c.JSON(http.StatusOK, gin.H{"data": lesson, "requires_subscription": true})
+			return
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{"data": lesson})
 }

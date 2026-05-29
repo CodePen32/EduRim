@@ -24,7 +24,7 @@ func NewAuthHandler(secret string) *AuthHandler {
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req models.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "بيانات غير صحيحة: " + err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "بيانات غير صحيحة"})
 		return
 	}
 
@@ -133,7 +133,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	)
 
 	if err == sql.ErrNoRows {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "البريد الإلكتروني أو رقم الهاتف غير مسجل"})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "بيانات الدخول غير صحيحة"})
 		return
 	}
 	if err != nil {
@@ -142,7 +142,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	if !password.Check(req.Password, user.PasswordHash) {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "كلمة المرور غير صحيحة"})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "بيانات الدخول غير صحيحة"})
 		return
 	}
 

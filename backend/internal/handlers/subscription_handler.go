@@ -29,7 +29,7 @@ func (h *SubscriptionHandler) GetMySubscription(c *gin.Context) {
 
 	resp, err := h.repo.GetUserSubscription(userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب بيانات الاشتراك", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب بيانات الاشتراك"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"data": resp})
@@ -39,7 +39,7 @@ func (h *SubscriptionHandler) GetMySubscription(c *gin.Context) {
 func (h *SubscriptionHandler) GetAdminPlans(c *gin.Context) {
 	plans, err := h.repo.GetAllPlans()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب الخطط", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب الخطط"})
 		return
 	}
 	if plans == nil {
@@ -56,7 +56,7 @@ func (h *SubscriptionHandler) CreatePlan(c *gin.Context) {
 		return
 	}
 	if err := h.repo.CreatePlan(plan); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "تعذر إنشاء الخطة", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "تعذر إنشاء الخطة"})
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{"message": "تم إنشاء الخطة بنجاح"})
@@ -75,7 +75,7 @@ func (h *SubscriptionHandler) UpdatePlan(c *gin.Context) {
 		return
 	}
 	if err := h.repo.UpdatePlan(id, plan); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "تعذر تعديل الخطة", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "تعذر تعديل الخطة"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "تم تعديل الخطة بنجاح"})
@@ -89,7 +89,7 @@ func (h *SubscriptionHandler) DeletePlan(c *gin.Context) {
 		return
 	}
 	if err := h.repo.DeletePlan(id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "تعذر حذف الخطة", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "تعذر حذف الخطة"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "تم حذف الخطة بنجاح"})
@@ -107,7 +107,7 @@ func (h *SubscriptionHandler) GetAdminUserSubscriptions(c *gin.Context) {
 	}
 	subs, err := h.repo.GetAllUserSubscriptions(lpID, bacBranchID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب الاشتراكات", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب الاشتراكات"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"data": subs})
@@ -126,7 +126,7 @@ func (h *SubscriptionHandler) CreateUserSubscription(c *gin.Context) {
 	}
 	sub.IsActive = true
 	if err := h.repo.CreateUserSubscription(sub); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "تعذر إنشاء الاشتراك", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "تعذر إنشاء الاشتراك"})
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{"message": "تم إنشاء الاشتراك بنجاح"})
@@ -145,7 +145,7 @@ func (h *SubscriptionHandler) UpdateUserSubscription(c *gin.Context) {
 		return
 	}
 	if err := h.repo.UpdateUserSubscription(id, sub); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "تعذر تعديل الاشتراك", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "تعذر تعديل الاشتراك"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "تم تعديل الاشتراك بنجاح"})
@@ -266,7 +266,7 @@ func (h *SubscriptionHandler) ApproveRequest(c *gin.Context) {
 	c.ShouldBindJSON(&body)
 
 	if err := h.repo.ApproveRequest(uint(id), adminID, body.AdminNote); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "تعذر قبول الطلب، تحقق من حالة الطلب"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "تم قبول الطلب وإنشاء الاشتراك"})
@@ -287,7 +287,7 @@ func (h *SubscriptionHandler) RejectRequest(c *gin.Context) {
 	c.ShouldBindJSON(&body)
 
 	if err := h.repo.RejectRequest(uint(id), adminID, body.AdminNote); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "تعذر رفض الطلب، تحقق من حالة الطلب"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "تم رفض الطلب"})
@@ -301,7 +301,7 @@ func (h *SubscriptionHandler) DeleteUserSubscription(c *gin.Context) {
 		return
 	}
 	if err := h.repo.DeleteUserSubscription(id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "تعذر حذف الاشتراك", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "تعذر حذف الاشتراك"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "تم حذف الاشتراك بنجاح"})

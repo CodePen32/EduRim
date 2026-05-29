@@ -23,7 +23,7 @@ func (h *SubjectHandler) GetSubjects(c *gin.Context) {
 
 	subjects, err := h.repo.GetAll(lpID, bacID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب المواد", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب المواد"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"data": subjects})

@@ -26,7 +26,7 @@ func (h *ExerciseHandler) GetExercises(c *gin.Context) {
 
 	exercises, err := h.repo.GetFiltered(subjectID, lessonID, year, difficulty)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب التمارين", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب التمارين"})
 		return
 	}
 	if exercises == nil {
@@ -69,7 +69,7 @@ func (h *ExerciseHandler) GetMyExercises(c *gin.Context) {
 
 	exercises, err := h.repo.GetFilteredForUser(subjectID, lessonID, year, difficulty, lp, bac)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب التمارين", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب التمارين"})
 		return
 	}
 	if exercises == nil {

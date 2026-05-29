@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: edurim-api
+    env: go
+    rootDir: backend
+    buildCommand: go build -o edurim-api ./cmd/server
+    startCommand: ./edurim-api
+    healthCheckPath: /api/health
+    envVars:
+      # ── App ──────────────────────────────────────────────
+      - key: APP_ENV
+        value: production
+      - key: GIN_MODE
+        value: release
+
+      # ── CORS ─────────────────────────────────────────────
+      # Add Cloudflare Pages temporary URLs during initial deployment
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://student.edurim.com,https://admin.edurim.com,https://edurim-student.pages.dev,https://edurim-admin.pages.dev
+
+      # ── Storage ──────────────────────────────────────────
+      - key: STORAGE_DRIVER
+        value: r2
+      - key: R2_BUCKET
+        value: edurim-uploads
+      - key: R2_PUBLIC_URL
+        value: https://files.edurim.com
+
+      # ── Secrets (set manually in Render Dashboard) ───────
+      # DO NOT add these here — set them in Render Dashboard:
+      #   PORT              (set automatically by Render)
+      #   DB_HOST
+      #   DB_PORT
+      #   DB_USER
+      #   DB_PASSWORD
+      #   DB_NAME
+      #   JWT_SECRET
+      #   R2_ACCOUNT_ID
+      #   R2_ACCESS_KEY_ID
+      #   R2_SECRET_ACCESS_KEY

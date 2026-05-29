@@ -62,7 +62,7 @@ func (h *MeHandler) GetMySubjects(c *gin.Context) {
 
 	subjects, err := h.subjectRepo.GetAll(lp, bac)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب المواد", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب المواد"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"data": subjects})
