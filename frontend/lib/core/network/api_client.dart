@@ -1,14 +1,20 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:http/http.dart' as http;
 
 class ApiClient {
   // ─── API base URL ─────────────────────────────────────────────────────
   // Dev:  flutter run  (no --dart-define needed → defaults to localhost)
-  // Prod: flutter build web --dart-define=API_BASE_URL=https://api.edurim.com/api
+  // Prod: flutter build --dart-define=API_BASE_URL=https://edurim-api.onrender.com/api
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: 'http://localhost:8081/api',
   );
+
+  // Logs the active base URL once at startup — visible in logcat/console
+  static void logBaseUrl() {
+    debugPrint('[ApiClient] baseUrl = $baseUrl');
+  }
 
   String? _token;
 
