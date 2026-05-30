@@ -1,6 +1,9 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:web/web.dart' as web;
+import 'package:url_launcher/url_launcher.dart';
+
+import 'url_helper_web.dart' if (dart.library.io) 'url_helper_stub.dart'
+    as platform;
 
 // Dev:  flutter run  (no --dart-define needed → defaults to localhost)
 // Prod: flutter build web --dart-define=FILES_BASE_URL=https://files.edurim.com
@@ -29,12 +32,24 @@ Future<void> openExternalUrl(String? rawUrl, {BuildContext? context}) async {
   debugPrint('openExternalUrl: $url');
 
   if (kIsWeb) {
-    web.window.open(url, '_blank');
+    platform.openInNewTab(url);
     return;
   }
 
-  // Mobile/Desktop — placeholder (url_launcher can be wired here)
-  _showSnack(context, 'تعذر فتح الرابط');
+  // Mobile/Desktop — url_launcher
+  final uri = Uri.tryParse(url);
+  if (uri == null) {
+    _showSnack(context, 'الرابط غير صالح');
+    return;
+  }
+  final canLaunch = await canLaunchUrl(uri);
+  if (!canLaunch) {
+    if (context != null && context.mounted) {
+      _showSnack(context, 'تعذر فتح الرابط');
+    }
+    return;
+  }
+  await launchUrl(uri, mode: LaunchMode.externalApplication);
 }
 
 void _showSnack(BuildContext? context, String msg) {
