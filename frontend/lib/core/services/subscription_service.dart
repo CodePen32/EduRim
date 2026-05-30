@@ -1,11 +1,10 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 
 import '../models/subscription.dart';
 import '../network/api_client.dart';
-import 'file_picker_web.dart' if (dart.library.io) 'file_picker_stub.dart'
+import 'file_picker_web.dart' if (dart.library.io) 'file_picker_mobile.dart'
     as picker;
 
 class SubscriptionService {
@@ -64,7 +63,6 @@ class SubscriptionService {
 
   /// يفتح file picker ويرفع الصورة للخادم — يُعيد URL المحفوظة
   Future<String> uploadReceiptImage() async {
-    if (!kIsWeb) throw Exception('رفع الصور غير مدعوم على هذه المنصة');
 
     final picked = await picker.pickFileBytes();
     if (picked == null) throw Exception('لم يتم اختيار ملف');

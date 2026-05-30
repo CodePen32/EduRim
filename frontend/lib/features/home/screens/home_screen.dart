@@ -28,23 +28,37 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
-  Key _homeKey = UniqueKey();
 
-  void _refreshHome() {
-    setState(() => _homeKey = UniqueKey());
-  }
+  // Keep pages alive across tab switches — avoid rebuilding on every tap
+  late final List<Widget> _pages;
 
   @override
-  Widget build(BuildContext context) {
-    final pages = [
-      _HomeContent(key: _homeKey, onRefreshRequested: _refreshHome),
+  void initState() {
+    super.initState();
+    _pages = [
+      _HomeContent(onRefreshRequested: _refreshHome),
       const FavoritesScreen(standalone: false),
       const DownloadsScreen(standalone: false),
       const AverageCalculatorScreen(standalone: false),
       ProfileScreen(standalone: false, onProfileUpdated: _refreshHome),
     ];
+  }
+
+  void _refreshHome() {
+    // Invalidate subject cache so next home visit fetches fresh data
+    subjectService.invalidate();
+    setState(() {
+      _pages[0] = _HomeContent(key: UniqueKey(), onRefreshRequested: _refreshHome);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      body: pages[_currentIndex],
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _pages,
+      ),
       bottomNavigationBar: BottomNavBar(
         currentIndex: _currentIndex,
         onTap: (i) => setState(() => _currentIndex = i),

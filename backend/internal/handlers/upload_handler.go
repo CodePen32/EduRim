@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -41,13 +42,17 @@ func SetStorageService(s services.StorageService) { StorageSvc = s }
 func UploadHandler(c *gin.Context) {
 	file, header, err := c.Request.FormFile("file")
 	if err != nil {
+		log.Printf("[upload] FormFile error: %v | Content-Type: %s", err, c.GetHeader("Content-Type"))
 		c.JSON(http.StatusBadRequest, gin.H{"error": "لم يتم رفع أي ملف"})
 		return
 	}
 	defer file.Close()
 
 	ext := strings.ToLower(filepath.Ext(header.Filename))
+	log.Printf("[upload] filename=%s ext=%s size=%d type-query=%s", header.Filename, ext, header.Size, c.Query("type"))
+
 	if !allowedExts[ext] {
+		log.Printf("[upload] rejected: extension %q not allowed", ext)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "نوع الملف غير مسموح. المسموح: jpg, png, pdf, mp4, webm, mov"})
 		return
 	}
@@ -69,6 +74,7 @@ func UploadHandler(c *gin.Context) {
 			}
 		}
 		if !ok {
+			log.Printf("[upload] rejected: content-type %q does not match ext %q", ct, ext)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "نوع المحتوى لا يطابق امتداد الملف"})
 			return
 		}

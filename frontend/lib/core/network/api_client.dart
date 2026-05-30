@@ -11,6 +11,8 @@ class ApiClient {
     defaultValue: 'http://localhost:8081/api',
   );
 
+  static const Duration _timeout = Duration(seconds: 15);
+
   // Logs the active base URL once at startup — visible in logcat/console
   static void logBaseUrl() {
     debugPrint('[ApiClient] baseUrl = $baseUrl');
@@ -29,45 +31,37 @@ class ApiClient {
   };
 
   Future<Map<String, dynamic>> get(String path) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl$path'),
-      headers: _headers,
-    );
+    final response = await http
+        .get(Uri.parse('$baseUrl$path'), headers: _headers)
+        .timeout(_timeout);
     return _handleResponse(response);
   }
 
   Future<Map<String, dynamic>> post(String path, Map<String, dynamic> body) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl$path'),
-      headers: _headers,
-      body: jsonEncode(body),
-    );
+    final response = await http
+        .post(Uri.parse('$baseUrl$path'), headers: _headers, body: jsonEncode(body))
+        .timeout(_timeout);
     return _handleResponse(response);
   }
 
   Future<Map<String, dynamic>> put(String path, Map<String, dynamic> body) async {
-    final response = await http.put(
-      Uri.parse('$baseUrl$path'),
-      headers: _headers,
-      body: jsonEncode(body),
-    );
+    final response = await http
+        .put(Uri.parse('$baseUrl$path'), headers: _headers, body: jsonEncode(body))
+        .timeout(_timeout);
     return _handleResponse(response);
   }
 
   Future<Map<String, dynamic>> patch(String path, Map<String, dynamic> body) async {
-    final response = await http.patch(
-      Uri.parse('$baseUrl$path'),
-      headers: _headers,
-      body: jsonEncode(body),
-    );
+    final response = await http
+        .patch(Uri.parse('$baseUrl$path'), headers: _headers, body: jsonEncode(body))
+        .timeout(_timeout);
     return _handleResponse(response);
   }
 
   Future<Map<String, dynamic>> delete(String path) async {
-    final response = await http.delete(
-      Uri.parse('$baseUrl$path'),
-      headers: _headers,
-    );
+    final response = await http
+        .delete(Uri.parse('$baseUrl$path'), headers: _headers)
+        .timeout(_timeout);
     return _handleResponse(response);
   }
 
