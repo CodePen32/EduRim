@@ -8,7 +8,6 @@ import (
 	"edurim/backend/internal/config"
 	"edurim/backend/internal/database"
 	"edurim/backend/internal/handlers"
-	"edurim/backend/internal/middleware"
 	"edurim/backend/internal/routes"
 	"edurim/backend/internal/services"
 
@@ -37,8 +36,9 @@ func main() {
 	handlers.SetStorageService(storageSvc)
 	log.Printf("Storage driver: %s", strings.ToUpper(cfg.StorageDriver))
 
-	r := gin.Default()
-	r.Use(middleware.CORS())
+	// Use gin.New() + Recovery only — CORS and SecurityHeaders are applied in routes.Setup
+	r := gin.New()
+	r.Use(gin.Recovery())
 	// Local uploads served from disk (no-op in production when using R2)
 	r.Static("/uploads", "./uploads")
 	routes.Setup(r, cfg.JWTSecret, database.DB)
