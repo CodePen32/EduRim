@@ -63,9 +63,12 @@ class SubscriptionService {
 
   /// يفتح file picker ويرفع الصورة للخادم — يُعيد URL المحفوظة
   Future<String> uploadReceiptImage() async {
-
     final picked = await picker.pickFileBytes();
     if (picked == null) throw Exception('لم يتم اختيار ملف');
+
+    final bytes    = picked.$1;
+    final filename = picked.$2;
+    final mime     = picked.$3;
 
     final token = apiClient.currentToken ?? '';
     final uri = Uri.parse('${ApiClient.baseUrl}/me/uploads?type=images');
@@ -74,10 +77,13 @@ class SubscriptionService {
     if (token.isNotEmpty) {
       request.headers['Authorization'] = 'Bearer $token';
     }
+
+    // Send explicit contentType so backend sees the correct MIME
     request.files.add(http.MultipartFile.fromBytes(
       'file',
-      picked.$1,
-      filename: picked.$2,
+      bytes,
+      filename: filename,
+      contentType: _mediaType(mime),
     ));
 
     final streamed = await request.send();
@@ -89,6 +95,13 @@ class SubscriptionService {
     }
     throw Exception(json['error'] as String? ?? 'تعذر رفع الصورة');
   }
+}
+
+/// Converts a MIME string to a MediaType for http.MultipartFile
+http.MediaType _mediaType(String mime) {
+  final parts = mime.split('/');
+  if (parts.length == 2) return http.MediaType(parts[0], parts[1]);
+  return http.MediaType('image', 'jpeg');
 }
 
 final subscriptionService = SubscriptionService();
