@@ -16,6 +16,9 @@ export async function uploadFile(file: File, category: UploadCategory, onProgres
 
   const type = categoryToType[category] ?? 'images'
 
+  console.debug('[upload] url=/admin/uploads?type=' + type,
+    'field=file', 'name=' + file.name, 'type=' + file.type, 'size=' + file.size)
+
   // Do NOT set Content-Type manually — let the browser set it with the correct boundary
   const res = await api.post(`/admin/uploads?type=${type}`, form, {
     onUploadProgress: (e) => {

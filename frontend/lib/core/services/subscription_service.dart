@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:http/http.dart' as http;
 
 import '../models/subscription.dart';
@@ -72,6 +73,8 @@ class SubscriptionService {
 
     final token = apiClient.currentToken ?? '';
     final uri = Uri.parse('${ApiClient.baseUrl}/me/uploads?type=images');
+
+    debugPrint('[upload] url=$uri field=file filename=$filename mime=$mime size=${bytes.length} hasToken=${token.isNotEmpty}');
 
     final request = http.MultipartRequest('POST', uri);
     if (token.isNotEmpty) {

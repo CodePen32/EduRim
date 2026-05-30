@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"mime"
 	"mime/multipart"
 	"net/http"
@@ -27,7 +28,24 @@ type StorageService interface {
 
 // NewStorageService returns LocalStorage or R2Storage based on config.
 func NewStorageService(cfg *config.Config) StorageService {
-	if strings.ToLower(cfg.StorageDriver) == "r2" {
+	driver := strings.ToLower(cfg.StorageDriver)
+	log.Printf("[storage] driver=%q bucket=%q publicURL=%q accountID=%q",
+		driver, cfg.R2Bucket, cfg.R2PublicURL, cfg.R2AccountID)
+
+	if driver == "r2" {
+		// Validate required R2 credentials at startup
+		missing := []string{}
+		if cfg.R2AccountID == ""       { missing = append(missing, "R2_ACCOUNT_ID") }
+		if cfg.R2AccessKeyID == ""     { missing = append(missing, "R2_ACCESS_KEY_ID") }
+		if cfg.R2SecretAccessKey == "" { missing = append(missing, "R2_SECRET_ACCESS_KEY") }
+		if cfg.R2Bucket == ""          { missing = append(missing, "R2_BUCKET") }
+		if cfg.R2PublicURL == ""       { missing = append(missing, "R2_PUBLIC_URL") }
+		if len(missing) > 0 {
+			log.Printf("[storage] WARNING: R2 driver selected but missing env vars: %v", missing)
+			log.Printf("[storage] Falling back to local storage until R2 is configured")
+			return &LocalStorage{cfg: cfg}
+		}
+		log.Printf("[storage] R2 configured OK — endpoint=https://%s.r2.cloudflarestorage.com", cfg.R2AccountID)
 		return &R2Storage{cfg: cfg}
 	}
 	return &LocalStorage{cfg: cfg}
@@ -56,8 +74,9 @@ func (s *LocalStorage) Upload(_ context.Context, folder string, file multipart.F
 	if _, err := io.Copy(dest, file); err != nil {
 		return "", fmt.Errorf("write file: %w", err)
 	}
-	// Return relative path so Flutter/Admin prepend the base URL
-	return "/" + folder + "/" + filename, nil
+	url := "/" + folder + "/" + filename
+	log.Printf("[storage:local] saved folder=%s filename=%s url=%s", folder, filename, url)
+	return url, nil
 }
 
 // ─────────────────────────────────────────────
@@ -76,17 +95,27 @@ func (s *R2Storage) Upload(ctx context.Context, folder string, file multipart.Fi
 	// Read file into buffer (needed for Content-Length)
 	buf, err := io.ReadAll(file)
 	if err != nil {
-		return "", fmt.Errorf("read file: %w", err)
+		return "", fmt.Errorf("read file bytes: %w", err)
 	}
 
-	// Detect Content-Type from extension or header
-	contentType := header.Header.Get("Content-Type")
-	if contentType == "" || contentType == "application/octet-stream" {
+	// Detect Content-Type: prefer sniffed, fall back to declared, then extension
+	contentType := http.DetectContentType(func() []byte {
+		if len(buf) > 512 { return buf[:512] }
+		return buf
+	}())
+	if idx := strings.Index(contentType, ";"); idx != -1 {
+		contentType = strings.TrimSpace(contentType[:idx])
+	}
+	// If sniff returned generic octet-stream, try extension
+	if contentType == "application/octet-stream" {
 		contentType = detectContentType(ext, buf)
 	}
 
 	// Build R2 endpoint
 	endpoint := fmt.Sprintf("https://%s.r2.cloudflarestorage.com", s.cfg.R2AccountID)
+
+	log.Printf("[storage:r2] uploading key=%s size=%d contentType=%s bucket=%s endpoint=%s",
+		objectKey, len(buf), contentType, s.cfg.R2Bucket, endpoint)
 
 	// Create S3 client pointing to R2
 	client := s3.NewFromConfig(
@@ -112,11 +141,13 @@ func (s *R2Storage) Upload(ctx context.Context, folder string, file multipart.Fi
 		ContentLength: aws.Int64(int64(len(buf))),
 	})
 	if err != nil {
-		return "", fmt.Errorf("R2 upload: %w", err)
+		// Log the full R2 error — visible in Render logs only
+		log.Printf("[storage:r2] PutObject FAILED key=%s err=%v", objectKey, err)
+		return "", fmt.Errorf("R2 PutObject: %w", err)
 	}
 
-	// Return full public URL
 	publicURL := strings.TrimRight(s.cfg.R2PublicURL, "/") + "/" + objectKey
+	log.Printf("[storage:r2] upload OK key=%s publicURL=%s", objectKey, publicURL)
 	return publicURL, nil
 }
 
