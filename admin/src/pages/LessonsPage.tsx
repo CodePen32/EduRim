@@ -25,7 +25,7 @@ interface FormState {
 }
 const EMPTY: FormState = { title: '', description: '', subject_id: '', teacher_id: '', video_url: '', summary_url: '', cover_image_url: '', duration_minutes: 0, is_free: true }
 
-const cardStyle: CSSProperties = { background: '#fff', borderRadius: 14, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 14, border: '1px solid #E2E8F0', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }
+const cardStyle: CSSProperties = { background: '#fff', borderRadius: 14, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, border: '1px solid #E2E8F0', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', flexWrap: 'nowrap' }
 const iBtnStyle: CSSProperties = { width: 34, height: 34, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s', flexShrink: 0 }
 
 export function LessonsPage() {
@@ -70,12 +70,14 @@ export function LessonsPage() {
 
   async function save() {
     if (!form.title.trim() || !form.subject_id) return
+    if (saving) return // prevent double-submit
     setSaving(true)
     try {
       const payload = { ...form, subject_id: Number(form.subject_id), teacher_id: form.teacher_id ? Number(form.teacher_id) : 0 }
       if (editing) await lessonsService.update(editing.id, payload)
       else await lessonsService.create(payload)
-      setModal(false); load()
+      setModal(false)
+      await load()
     } catch (e) { alert((e as Error).message) }
     finally { setSaving(false) }
   }
@@ -103,16 +105,18 @@ export function LessonsPage() {
                   {l.cover_image_url ? <img src={buildFileUrl(l.cover_image_url)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} /> : <BookMarked size={18} color="#2563EB" />}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: 14, fontWeight: 700, color: '#1E293B', fontFamily: 'Cairo', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.title}</p>
-                  <p style={{ fontSize: 12, color: '#94A3B8', fontFamily: 'Cairo' }}>{l.subject_name ?? `مادة #${l.subject_id}`}{l.teacher_name ? ` — ${l.teacher_name}` : ''}</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#1E293B', fontFamily: 'Cairo', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 2 }}>{l.title}</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+                    <p style={{ fontSize: 11, color: '#94A3B8', fontFamily: 'Cairo', margin: 0 }}>{l.subject_name ?? `مادة #${l.subject_id}`}</p>
+                    {l.video_url && <Video size={11} color="#2563EB" />}
+                    {l.summary_url && <FileText size={11} color="#DC2626" />}
+                    <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 20, background: l.is_free ? '#F0FDF4' : '#F1F5F9', color: l.is_free ? '#16A34A' : '#64748B', fontFamily: 'Cairo', fontWeight: 600 }}>{l.is_free ? 'مجاني' : 'مدفوع'}</span>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  {l.video_url && <Video size={14} color="#2563EB" />}
-                  {l.summary_url && <FileText size={14} color="#DC2626" />}
-                  <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: l.is_free ? '#F0FDF4' : '#F1F5F9', color: l.is_free ? '#16A34A' : '#64748B', fontFamily: 'Cairo', fontWeight: 600 }}>{l.is_free ? 'مجاني' : 'مدفوع'}</span>
+                <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
+                  <button onClick={() => openEdit(l)} style={iBtnStyle} onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#EFF6FF' }} onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}><Pencil size={15} color="#2563EB" /></button>
+                  <button onClick={() => setDeleteId(l.id)} style={iBtnStyle} onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#FEF2F2' }} onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}><Trash2 size={15} color="#DC2626" /></button>
                 </div>
-                <button onClick={() => openEdit(l)} style={iBtnStyle} onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#EFF6FF' }} onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}><Pencil size={15} color="#2563EB" /></button>
-                <button onClick={() => setDeleteId(l.id)} style={iBtnStyle} onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#FEF2F2' }} onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}><Trash2 size={15} color="#DC2626" /></button>
               </div>
             ))}
           </div>

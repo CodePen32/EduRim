@@ -48,12 +48,14 @@ export function SubjectsPage() {
 
   async function save() {
     if (!form.name_ar.trim()) return
+    if (saving) return // prevent double-submit
     setSaving(true)
     try {
       const payload = { ...form, learning_path_id: scope!.learningPathId, bac_branch_id: scope!.bacBranchId }
       if (editing) await subjectsService.update(editing.id, payload)
       else await subjectsService.create(payload)
-      setModal(false); load()
+      setModal(false)
+      await load()
     } catch (e) { alert((e as Error).message) }
     finally { setSaving(false) }
   }
