@@ -1,8 +1,12 @@
 package config
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"log"
 	"os"
+
+	"github.com/go-sql-driver/mysql"
 )
 
 var insecureDefaults = []string{"change_me_later", "secret", "password", "12345", ""}
@@ -67,18 +71,55 @@ func Load() *Config {
 	}
 }
 
+// RegisterTLS يسجّل TLS config لـ Aiven إذا كان DB_CA_CERT موجوداً.
+// يجب استدعاؤه مرة واحدة قبل أي اتصال بقاعدة البيانات.
+func RegisterTLS() {
+	if os.Getenv("DB_TLS") != "true" {
+		return
+	}
+
+	caCert := os.Getenv("DB_CA_CERT")
+	if caCert == "" {
+		// لا يوجد CA cert — نستخدم tls=true (يتحقق من CA النظام)
+		// هذا يكفي إذا كان Aiven CA موثوقاً في النظام
+		return
+	}
+
+	pool := x509.NewCertPool()
+	if !pool.AppendCertsFromPEM([]byte(caCert)) {
+		log.Fatal("FATAL: DB_CA_CERT غير صالح — تعذّر تحميل شهادة Aiven CA")
+	}
+
+	tlsCfg := &tls.Config{
+		RootCAs:    pool,
+		MinVersion: tls.VersionTLS12,
+	}
+
+	if err := mysql.RegisterTLSConfig("aiven", tlsCfg); err != nil {
+		log.Fatalf("FATAL: تعذّر تسجيل TLS config لـ MySQL: %v", err)
+	}
+
+	log.Println("✅ Aiven TLS config registered with custom CA")
+}
+
 // DSN يبني رابط الاتصال بـ MySQL
 func (c *Config) DSN() string {
 	auth := c.DBUser
 	if c.DBPassword != "" {
 		auth += ":" + c.DBPassword
 	}
-	tls := ""
+
+	tlsParam := ""
 	if os.Getenv("DB_TLS") == "true" {
-		tls = "&tls=true"
+		if os.Getenv("DB_CA_CERT") != "" {
+			tlsParam = "&tls=aiven" // يستخدم CA المسجّل
+		} else {
+			tlsParam = "&tls=true" // يثق بـ CA النظام
+		}
 	}
+
 	return auth + "@tcp(" + c.DBHost + ":" + c.DBPort + ")/" + c.DBName +
-		"?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=True&loc=Local" + tls
+		"?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=True&loc=Local" + tlsParam
 }
 
 func getEnv(key, defaultVal string) string {

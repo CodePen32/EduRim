@@ -23,6 +23,8 @@ func main() {
 
 	cfg := config.Load()
 
+	// يجب تسجيل TLS config قبل أي اتصال بقاعدة البيانات
+	config.RegisterTLS()
 	database.Connect(cfg.DSN())
 
 	// Set release mode when APP_ENV=production or GIN_MODE=release
