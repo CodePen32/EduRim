@@ -26,6 +26,22 @@ type StorageService interface {
 	Upload(ctx context.Context, folder string, file multipart.File, header *multipart.FileHeader) (string, error)
 }
 
+// FileReader fetches a stored file by key (e.g. "images/xxx.jpg").
+// Returns the body stream, detected content-type, and any error.
+type FileReader interface {
+	Get(ctx context.Context, key string) (body io.ReadCloser, contentType string, err error)
+}
+
+// NewFileReader returns the same backend as NewStorageService but typed as FileReader.
+func NewFileReader(cfg *config.Config) FileReader {
+	if strings.ToLower(cfg.StorageDriver) == "r2" &&
+		cfg.R2AccountID != "" && cfg.R2AccessKeyID != "" &&
+		cfg.R2SecretAccessKey != "" && cfg.R2Bucket != "" {
+		return &R2Storage{cfg: cfg}
+	}
+	return &LocalStorage{cfg: cfg}
+}
+
 // NewStorageService returns LocalStorage or R2Storage based on config.
 func NewStorageService(cfg *config.Config) StorageService {
 	driver := strings.ToLower(cfg.StorageDriver)
@@ -77,6 +93,25 @@ func (s *LocalStorage) Upload(_ context.Context, folder string, file multipart.F
 	url := "/" + folder + "/" + filename
 	log.Printf("[storage:local] saved folder=%s filename=%s url=%s", folder, filename, url)
 	return url, nil
+}
+
+// Get fetches a file from local disk.
+func (s *LocalStorage) Get(_ context.Context, key string) (io.ReadCloser, string, error) {
+	path := filepath.Join(s.cfg.LocalUploadsDir, key)
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, "", fmt.Errorf("open %s: %w", path, err)
+	}
+	// Sniff content type from first 512 bytes
+	sniff := make([]byte, 512)
+	n, _ := f.Read(sniff)
+	ct := http.DetectContentType(sniff[:n])
+	if idx := strings.Index(ct, ";"); idx != -1 {
+		ct = strings.TrimSpace(ct[:idx])
+	}
+	// Seek back to start
+	f.Seek(0, io.SeekStart)
+	return f, ct, nil
 }
 
 // ─────────────────────────────────────────────
@@ -149,6 +184,37 @@ func (s *R2Storage) Upload(ctx context.Context, folder string, file multipart.Fi
 	publicURL := strings.TrimRight(s.cfg.R2PublicURL, "/") + "/" + objectKey
 	log.Printf("[storage:r2] upload OK key=%s publicURL=%s", objectKey, publicURL)
 	return publicURL, nil
+}
+
+// Get fetches a file from R2 using S3 GetObject.
+func (s *R2Storage) Get(ctx context.Context, key string) (io.ReadCloser, string, error) {
+	endpoint := fmt.Sprintf("https://%s.r2.cloudflarestorage.com", s.cfg.R2AccountID)
+	client := s3.NewFromConfig(
+		aws.Config{
+			Region: "auto",
+			Credentials: credentials.NewStaticCredentialsProvider(
+				s.cfg.R2AccessKeyID,
+				s.cfg.R2SecretAccessKey,
+				"",
+			),
+		},
+		func(o *s3.Options) {
+			o.BaseEndpoint = aws.String(endpoint)
+			o.UsePathStyle = true
+		},
+	)
+	out, err := client.GetObject(ctx, &s3.GetObjectInput{
+		Bucket: aws.String(s.cfg.R2Bucket),
+		Key:    aws.String(key),
+	})
+	if err != nil {
+		return nil, "", fmt.Errorf("R2 GetObject %q: %w", key, err)
+	}
+	ct := ""
+	if out.ContentType != nil {
+		ct = *out.ContentType
+	}
+	return out.Body, ct, nil
 }
 
 // detectContentType infers MIME type from extension, then sniffs bytes.

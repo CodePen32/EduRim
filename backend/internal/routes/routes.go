@@ -26,6 +26,11 @@ func Setup(r *gin.Engine, jwtSecret string, db *sql.DB) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok", "service": "edurim-api"})
 	})
 
+	// Public file proxy — serves files from R2 (or local) via backend credentials.
+	// Used when R2 bucket is private (no public r2.dev access).
+	// Example: GET /api/files/images/1234567890.jpg
+	api.GET("/files/*key", handlers.ServeFile)
+
 	// Auth
 	auth := api.Group("/auth")
 	authHandler := handlers.NewAuthHandler(jwtSecret)

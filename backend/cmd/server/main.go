@@ -34,6 +34,7 @@ func main() {
 	// Initialize storage service (local or R2)
 	storageSvc := services.NewStorageService(cfg)
 	handlers.SetStorageService(storageSvc)
+	handlers.SetFileReader(services.NewFileReader(cfg))
 	log.Printf("Storage driver: %s", strings.ToUpper(cfg.StorageDriver))
 
 	// Use gin.New() + Recovery only — CORS and SecurityHeaders are applied in routes.Setup
