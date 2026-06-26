@@ -23,6 +23,11 @@ func NewCalculatorRepository(db *sql.DB) *CalculatorRepository {
 	return &CalculatorRepository{db: db}
 }
 
+// GetSubjectsForUser is intentionally NOT cached in Phase 2A: it starts with
+// a per-user DB lookup (users.learning_path_id/bac_branch_id keyed by
+// userID), so caching its result would mean keying the cache by user_id —
+// disallowed by the Phase 2A scope, which forbids caching anything that
+// depends on user_id (even indirectly).
 func (r *CalculatorRepository) GetSubjectsForUser(userID int) ([]CalculatorSubject, error) {
 	var learningPathID int
 	var bacBranchID sql.NullInt64

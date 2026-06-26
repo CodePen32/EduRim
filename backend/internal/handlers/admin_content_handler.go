@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"edurim/backend/internal/cache"
 	"edurim/backend/internal/repositories"
 
 	"github.com/gin-gonic/gin"
@@ -83,6 +84,7 @@ func (h *AdminContentHandler) CreateSubject(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "تعذر إنشاء المادة"})
 		return
 	}
+	cache.ClearContentCaches()
 	c.JSON(http.StatusCreated, gin.H{"id": id, "message": "تم إنشاء المادة بنجاح"})
 }
 
@@ -104,6 +106,7 @@ func (h *AdminContentHandler) UpdateSubject(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "تعذر التعديل"})
 		return
 	}
+	cache.ClearContentCaches()
 	c.JSON(http.StatusOK, gin.H{"message": "تم التعديل بنجاح"})
 }
 
@@ -113,6 +116,7 @@ func (h *AdminContentHandler) DeleteSubject(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "تعذر الحذف"})
 		return
 	}
+	cache.ClearContentCaches()
 	c.JSON(http.StatusOK, gin.H{"message": "تم الحذف"})
 }
 
@@ -159,6 +163,7 @@ func (h *AdminContentHandler) CreateLesson(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "تعذر إنشاء الدرس"})
 		return
 	}
+	cache.ClearContentCaches()
 	c.JSON(http.StatusCreated, gin.H{"id": id, "message": "تم إنشاء الدرس بنجاح"})
 }
 
@@ -180,6 +185,7 @@ func (h *AdminContentHandler) UpdateLesson(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "تعذر التعديل"})
 		return
 	}
+	cache.ClearContentCaches()
 	c.JSON(http.StatusOK, gin.H{"message": "تم التعديل بنجاح"})
 }
 
@@ -189,6 +195,7 @@ func (h *AdminContentHandler) DeleteLesson(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "تعذر الحذف"})
 		return
 	}
+	cache.ClearContentCaches()
 	c.JSON(http.StatusOK, gin.H{"message": "تم الحذف"})
 }
 

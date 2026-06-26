@@ -2,6 +2,8 @@ package repositories
 
 import (
 	"database/sql"
+
+	"edurim/backend/internal/cache"
 	"edurim/backend/internal/models"
 )
 
@@ -13,7 +15,13 @@ func NewBacBranchRepository(db *sql.DB) *BacBranchRepository {
 	return &BacBranchRepository{db: db}
 }
 
+const bacBranchesCacheKey = "all"
+
 func (r *BacBranchRepository) GetAll() ([]models.BacBranch, error) {
+	if v, ok := cache.BacBranches.Get(bacBranchesCacheKey); ok {
+		return v.([]models.BacBranch), nil
+	}
+
 	if r.db == nil {
 		return nil, ErrNoDB
 	}
@@ -33,5 +41,10 @@ func (r *BacBranchRepository) GetAll() ([]models.BacBranch, error) {
 		}
 		branches = append(branches, b)
 	}
-	return branches, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	cache.BacBranches.Set(bacBranchesCacheKey, branches)
+	return branches, nil
 }

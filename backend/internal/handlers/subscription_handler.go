@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"edurim/backend/internal/cache"
 	"edurim/backend/internal/models"
 	"edurim/backend/internal/repositories"
 
@@ -59,6 +60,7 @@ func (h *SubscriptionHandler) CreatePlan(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "تعذر إنشاء الخطة"})
 		return
 	}
+	cache.ClearSubscriptionPlanCache()
 	c.JSON(http.StatusCreated, gin.H{"message": "تم إنشاء الخطة بنجاح"})
 }
 
@@ -78,6 +80,7 @@ func (h *SubscriptionHandler) UpdatePlan(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "تعذر تعديل الخطة"})
 		return
 	}
+	cache.ClearSubscriptionPlanCache()
 	c.JSON(http.StatusOK, gin.H{"message": "تم تعديل الخطة بنجاح"})
 }
 
@@ -92,6 +95,7 @@ func (h *SubscriptionHandler) DeletePlan(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "تعذر حذف الخطة"})
 		return
 	}
+	cache.ClearSubscriptionPlanCache()
 	c.JSON(http.StatusOK, gin.H{"message": "تم حذف الخطة بنجاح"})
 }
 

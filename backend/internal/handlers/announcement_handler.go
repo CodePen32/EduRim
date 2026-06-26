@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"edurim/backend/internal/cache"
 	"edurim/backend/internal/database"
 	"edurim/backend/internal/repositories"
 
@@ -86,6 +87,7 @@ func (h *AnnouncementHandler) CreateAnnouncement(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "تعذر إنشاء الإعلان"})
 		return
 	}
+	cache.ClearAnnouncementCache()
 	c.JSON(http.StatusCreated, gin.H{"id": id, "message": "تم إنشاء الإعلان بنجاح"})
 }
 
@@ -101,6 +103,7 @@ func (h *AnnouncementHandler) UpdateAnnouncement(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "تعذر التحديث"})
 		return
 	}
+	cache.ClearAnnouncementCache()
 	c.JSON(http.StatusOK, gin.H{"message": "تم تحديث الإعلان"})
 }
 
@@ -111,6 +114,7 @@ func (h *AnnouncementHandler) ToggleActive(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "تعذر التبديل"})
 		return
 	}
+	cache.ClearAnnouncementCache()
 	c.JSON(http.StatusOK, gin.H{"message": "تم تبديل حالة الإعلان"})
 }
 
@@ -121,6 +125,7 @@ func (h *AnnouncementHandler) DeleteAnnouncement(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "تعذر الحذف"})
 		return
 	}
+	cache.ClearAnnouncementCache()
 	c.JSON(http.StatusOK, gin.H{"message": "تم حذف الإعلان"})
 }
 

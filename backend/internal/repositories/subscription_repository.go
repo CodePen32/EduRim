@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"edurim/backend/internal/cache"
 	"edurim/backend/internal/models"
 )
 
@@ -16,8 +17,14 @@ func NewSubscriptionRepository(db *sql.DB) *SubscriptionRepository {
 	return &SubscriptionRepository{db: db}
 }
 
+const allPlansCacheKey = "all"
+
 // GetAllPlans returns all subscription plans
 func (r *SubscriptionRepository) GetAllPlans() ([]models.SubscriptionPlan, error) {
+	if v, ok := cache.SubscriptionPlans.Get(allPlansCacheKey); ok {
+		return v.([]models.SubscriptionPlan), nil
+	}
+
 	if r.db == nil {
 		return nil, ErrNoDB
 	}
@@ -51,7 +58,12 @@ func (r *SubscriptionRepository) GetAllPlans() ([]models.SubscriptionPlan, error
 		}
 		plans = append(plans, p)
 	}
-	return plans, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	cache.SubscriptionPlans.Set(allPlansCacheKey, plans)
+	return plans, nil
 }
 
 // GetPlansByScope returns plans matching the given learning_path_id (and optionally bac_branch_id)

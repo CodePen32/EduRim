@@ -2,7 +2,10 @@ package repositories
 
 import (
 	"database/sql"
+	"strconv"
 	"time"
+
+	"edurim/backend/internal/cache"
 )
 
 type Announcement struct {
@@ -51,6 +54,11 @@ func (r *AnnouncementRepository) GetForAdmin(learningPathID, bacBranchID int) ([
 // GetActiveForUser returns active announcements visible to a student based on their LP/BAC
 // GetActiveForUser — bacBranchID=-1 يعني الشعبة لم تُعيَّن بعد (BAC بدون شعبة)
 func (r *AnnouncementRepository) GetActiveForUser(learningPathID, bacBranchID int) ([]Announcement, error) {
+	cacheKey := strconv.Itoa(learningPathID) + ":" + strconv.Itoa(bacBranchID)
+	if v, ok := cache.Announcements.Get(cacheKey); ok {
+		return v.([]Announcement), nil
+	}
+
 	if r.db == nil {
 		return nil, ErrNoDB
 	}
@@ -63,21 +71,28 @@ func (r *AnnouncementRepository) GetActiveForUser(learningPathID, bacBranchID in
 	            AND (ends_at   IS NULL OR ends_at   >= NOW())
 	            AND (learning_path_id IS NULL OR learning_path_id = ?)`
 
+	var list []Announcement
+	var err error
+
 	// BAC بدون شعبة: أظهر فقط الإعلانات العامة
 	if learningPathID == 3 && bacBranchID == -1 {
 		query := base + ` AND learning_path_id IS NULL ORDER BY id DESC`
-		return r.scan(query, learningPathID)
-	}
-
-	// BAC بشعبة: الإعلانات العامة + إعلانات BAC العامة (bac=NULL) + إعلانات الشعبة المحددة
-	if learningPathID == 3 && bacBranchID > 0 {
+		list, err = r.scan(query, learningPathID)
+	} else if learningPathID == 3 && bacBranchID > 0 {
+		// BAC بشعبة: الإعلانات العامة + إعلانات BAC العامة (bac=NULL) + إعلانات الشعبة المحددة
 		query := base + ` AND (bac_branch_id IS NULL OR bac_branch_id = ?) ORDER BY id DESC`
-		return r.scan(query, learningPathID, bacBranchID)
+		list, err = r.scan(query, learningPathID, bacBranchID)
+	} else {
+		// Concours/BEPC: لا يرون إعلانات Bac
+		query := base + ` AND bac_branch_id IS NULL ORDER BY id DESC`
+		list, err = r.scan(query, learningPathID)
+	}
+	if err != nil {
+		return nil, err
 	}
 
-	// Concours/BEPC: لا يرون إعلانات Bac
-	query := base + ` AND bac_branch_id IS NULL ORDER BY id DESC`
-	return r.scan(query, learningPathID)
+	cache.Announcements.Set(cacheKey, list)
+	return list, nil
 }
 
 func (r *AnnouncementRepository) Create(a Announcement) (int64, error) {

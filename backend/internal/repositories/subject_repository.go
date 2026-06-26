@@ -2,6 +2,9 @@ package repositories
 
 import (
 	"database/sql"
+	"strconv"
+
+	"edurim/backend/internal/cache"
 	"edurim/backend/internal/models"
 )
 
@@ -13,7 +16,16 @@ func NewSubjectRepository(db *sql.DB) *SubjectRepository {
 	return &SubjectRepository{db: db}
 }
 
+func subjectsCacheKey(learningPathID, bacBranchID int) string {
+	return strconv.Itoa(learningPathID) + ":" + strconv.Itoa(bacBranchID)
+}
+
 func (r *SubjectRepository) GetAll(learningPathID, bacBranchID int) ([]models.Subject, error) {
+	key := subjectsCacheKey(learningPathID, bacBranchID)
+	if v, ok := cache.Subjects.Get(key); ok {
+		return v.([]models.Subject), nil
+	}
+
 	if r.db == nil {
 		return nil, ErrNoDB
 	}
@@ -53,7 +65,12 @@ func (r *SubjectRepository) GetAll(learningPathID, bacBranchID int) ([]models.Su
 		}
 		subjects = append(subjects, s)
 	}
-	return subjects, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	cache.Subjects.Set(key, subjects)
+	return subjects, nil
 }
 
 func (r *SubjectRepository) GetByID(id int) (*models.Subject, error) {

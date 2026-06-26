@@ -3,6 +3,8 @@ package repositories
 import (
 	"database/sql"
 	"errors"
+
+	"edurim/backend/internal/cache"
 	"edurim/backend/internal/models"
 )
 
@@ -16,7 +18,13 @@ func NewLearningPathRepository(db *sql.DB) *LearningPathRepository {
 	return &LearningPathRepository{db: db}
 }
 
+const learningPathsCacheKey = "all"
+
 func (r *LearningPathRepository) GetAll() ([]models.LearningPath, error) {
+	if v, ok := cache.LearningPaths.Get(learningPathsCacheKey); ok {
+		return v.([]models.LearningPath), nil
+	}
+
 	if r.db == nil {
 		return nil, ErrNoDB
 	}
@@ -37,5 +45,10 @@ func (r *LearningPathRepository) GetAll() ([]models.LearningPath, error) {
 		}
 		paths = append(paths, p)
 	}
-	return paths, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	cache.LearningPaths.Set(learningPathsCacheKey, paths)
+	return paths, nil
 }
