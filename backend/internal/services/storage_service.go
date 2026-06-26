@@ -97,7 +97,17 @@ func (s *LocalStorage) Upload(_ context.Context, folder string, file multipart.F
 
 // Get fetches a file from local disk.
 func (s *LocalStorage) Get(_ context.Context, key string) (io.ReadCloser, string, error) {
-	path := filepath.Join(s.cfg.LocalUploadsDir, key)
+	base, err := filepath.Abs(s.cfg.LocalUploadsDir)
+	if err != nil {
+		return nil, "", fmt.Errorf("resolve uploads dir: %w", err)
+	}
+	path, err := filepath.Abs(filepath.Join(base, key))
+	if err != nil {
+		return nil, "", fmt.Errorf("resolve path: %w", err)
+	}
+	if path != base && !strings.HasPrefix(path, base+string(filepath.Separator)) {
+		return nil, "", fmt.Errorf("invalid key %q: escapes uploads dir", key)
+	}
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, "", fmt.Errorf("open %s: %w", path, err)
