@@ -5,7 +5,8 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
+
+	pkgjwt "edurim/backend/pkg/jwt"
 )
 
 func AdminAuth(jwtSecret string) gin.HandlerFunc {
@@ -16,15 +17,12 @@ func AdminAuth(jwtSecret string) gin.HandlerFunc {
 			return
 		}
 		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
-		token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
-			return []byte(jwtSecret), nil
-		})
-		if err != nil || !token.Valid {
+		claims, err := pkgjwt.VerifyMapClaims(tokenStr, jwtSecret)
+		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "رمز غير صالح"})
 			return
 		}
-		claims, ok := token.Claims.(jwt.MapClaims)
-		if !ok || claims["type"] != "admin" {
+		if claims["type"] != "admin" {
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "غير مسموح"})
 			return
 		}
