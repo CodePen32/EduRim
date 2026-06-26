@@ -22,7 +22,7 @@ func NewNotificationRepository(db *sql.DB) *NotificationRepository {
 	return &NotificationRepository{db: db}
 }
 
-func (r *NotificationRepository) GetForUser(userID int, learningPathID, bacBranchID *int) ([]Notification, error) {
+func (r *NotificationRepository) GetForUser(userID int, learningPathID, bacBranchID *int, limit, offset int) ([]Notification, error) {
 	if r.db == nil {
 		return nil, ErrNoDB
 	}
@@ -41,6 +41,10 @@ func (r *NotificationRepository) GetForUser(userID int, learningPathID, bacBranc
 		}
 	}
 	query += ` ORDER BY created_at DESC`
+	if limit > 0 {
+		query += ` LIMIT ? OFFSET ?`
+		args = append(args, limit, offset)
+	}
 
 	rows, err := r.db.Query(query, args...)
 	if err != nil {
@@ -107,7 +111,7 @@ func (r *NotificationRepository) Create(userID *int, title, message, notifType s
 	return err
 }
 
-func (r *NotificationRepository) GetAdminList(learningPathID, bacBranchID *int) ([]Notification, error) {
+func (r *NotificationRepository) GetAdminList(learningPathID, bacBranchID *int, limit, offset int) ([]Notification, error) {
 	if r.db == nil {
 		return nil, ErrNoDB
 	}
@@ -125,6 +129,10 @@ func (r *NotificationRepository) GetAdminList(learningPathID, bacBranchID *int) 
 		}
 	}
 	query += ` ORDER BY created_at DESC`
+	if limit > 0 {
+		query += ` LIMIT ? OFFSET ?`
+		args = append(args, limit, offset)
+	}
 
 	rows, err := r.db.Query(query, args...)
 	if err != nil {

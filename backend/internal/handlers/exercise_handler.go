@@ -23,8 +23,9 @@ func (h *ExerciseHandler) GetExercises(c *gin.Context) {
 	lessonID, _ := strconv.Atoi(c.Query("lesson_id"))
 	year, _ := strconv.Atoi(c.Query("year"))
 	difficulty := c.Query("difficulty")
+	limit, offset := parsePagination(c, 100, 200)
 
-	exercises, err := h.repo.GetFiltered(subjectID, lessonID, year, difficulty)
+	exercises, err := h.repo.GetFiltered(subjectID, lessonID, year, difficulty, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب التمارين"})
 		return
@@ -66,8 +67,9 @@ func (h *ExerciseHandler) GetMyExercises(c *gin.Context) {
 	lessonID, _ := strconv.Atoi(c.Query("lesson_id"))
 	year, _ := strconv.Atoi(c.Query("year"))
 	difficulty := c.Query("difficulty")
+	limit, offset := parsePagination(c, 100, 200)
 
-	exercises, err := h.repo.GetFilteredForUser(subjectID, lessonID, year, difficulty, lp, bac)
+	exercises, err := h.repo.GetFilteredForUser(subjectID, lessonID, year, difficulty, lp, bac, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب التمارين"})
 		return

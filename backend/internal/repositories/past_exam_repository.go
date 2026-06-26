@@ -33,6 +33,8 @@ type PastExamFilter struct {
 	LearningPathID int
 	BacBranchID    int
 	Year           int
+	Limit          int
+	Offset         int
 }
 
 func (r *PastExamRepository) GetFiltered(f PastExamFilter) ([]PastExam, error) {
@@ -60,6 +62,10 @@ func (r *PastExamRepository) GetFiltered(f PastExamFilter) ([]PastExam, error) {
 		args = append(args, f.Year)
 	}
 	query += " ORDER BY pe.year DESC, pe.id DESC"
+	if f.Limit > 0 {
+		query += " LIMIT ? OFFSET ?"
+		args = append(args, f.Limit, f.Offset)
+	}
 
 	rows, err := r.db.Query(query, args...)
 	if err != nil {
@@ -70,7 +76,7 @@ func (r *PastExamRepository) GetFiltered(f PastExamFilter) ([]PastExam, error) {
 }
 
 // GetBySubjectForUser returns past exams for a subject, filtered by the user's LP and BAC.
-func (r *PastExamRepository) GetBySubjectForUser(subjectID, learningPathID, bacBranchID int) ([]PastExam, error) {
+func (r *PastExamRepository) GetBySubjectForUser(subjectID, learningPathID, bacBranchID, limit, offset int) ([]PastExam, error) {
 	query := `SELECT pe.id, pe.learning_path_id, pe.bac_branch_id, pe.subject_id,
 		COALESCE(s.name_ar,''), pe.title, pe.year, COALESCE(pe.description,''),
 		COALESCE(pe.exam_file_url,''), COALESCE(pe.solution_file_url,''), COALESCE(pe.cover_image_url,''), pe.is_active
@@ -83,6 +89,10 @@ func (r *PastExamRepository) GetBySubjectForUser(subjectID, learningPathID, bacB
 		args = append(args, bacBranchID)
 	}
 	query += " ORDER BY pe.year DESC"
+	if limit > 0 {
+		query += " LIMIT ? OFFSET ?"
+		args = append(args, limit, offset)
+	}
 	rows, err := r.db.Query(query, args...)
 	if err != nil {
 		return nil, err
@@ -91,12 +101,18 @@ func (r *PastExamRepository) GetBySubjectForUser(subjectID, learningPathID, bacB
 	return scanPastExams(rows)
 }
 
-func (r *PastExamRepository) GetBySubject(subjectID int) ([]PastExam, error) {
-	rows, err := r.db.Query(`SELECT pe.id, pe.learning_path_id, pe.bac_branch_id, pe.subject_id,
+func (r *PastExamRepository) GetBySubject(subjectID, limit, offset int) ([]PastExam, error) {
+	query := `SELECT pe.id, pe.learning_path_id, pe.bac_branch_id, pe.subject_id,
 		COALESCE(s.name_ar,''), pe.title, pe.year, COALESCE(pe.description,''),
 		COALESCE(pe.exam_file_url,''), COALESCE(pe.solution_file_url,''), COALESCE(pe.cover_image_url,''), pe.is_active
 		FROM past_exams pe JOIN subjects s ON s.id = pe.subject_id
-		WHERE pe.subject_id = ? AND pe.is_active = 1 ORDER BY pe.year DESC`, subjectID)
+		WHERE pe.subject_id = ? AND pe.is_active = 1 ORDER BY pe.year DESC`
+	args := []interface{}{subjectID}
+	if limit > 0 {
+		query += " LIMIT ? OFFSET ?"
+		args = append(args, limit, offset)
+	}
+	rows, err := r.db.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}

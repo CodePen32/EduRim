@@ -32,6 +32,7 @@ func (h *PastExamHandler) GetPastExams(c *gin.Context) {
 	if v, err := strconv.Atoi(c.Query("year")); err == nil {
 		f.Year = v
 	}
+	f.Limit, f.Offset = parsePagination(c, 100, 200)
 
 	exams, err := h.repo.GetFiltered(f)
 	if err != nil {
@@ -66,6 +67,7 @@ func (h *PastExamHandler) GetMyPastExams(c *gin.Context) {
 	if v, err := strconv.Atoi(c.Query("year")); err == nil {
 		f.Year = v
 	}
+	f.Limit, f.Offset = parsePagination(c, 100, 200)
 
 	exams, err := h.repo.GetFiltered(f)
 	if err != nil {
@@ -91,7 +93,8 @@ func (h *PastExamHandler) GetMyPastExamsBySubject(c *gin.Context) {
 	}
 
 	subjectID, _ := strconv.Atoi(c.Param("id"))
-	exams, err := h.repo.GetBySubjectForUser(subjectID, lp, bac)
+	limit, offset := parsePagination(c, 100, 200)
+	exams, err := h.repo.GetBySubjectForUser(subjectID, lp, bac, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "خطأ في الخادم"})
 		return
@@ -105,7 +108,8 @@ func (h *PastExamHandler) GetMyPastExamsBySubject(c *gin.Context) {
 // GET /api/subjects/:id/past-exams  (public — kept for backward compat)
 func (h *PastExamHandler) GetBySubject(c *gin.Context) {
 	subjectID, _ := strconv.Atoi(c.Param("id"))
-	exams, err := h.repo.GetBySubject(subjectID)
+	limit, offset := parsePagination(c, 100, 200)
+	exams, err := h.repo.GetBySubject(subjectID, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "خطأ في الخادم"})
 		return

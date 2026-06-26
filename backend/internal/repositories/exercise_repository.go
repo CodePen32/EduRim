@@ -14,10 +14,10 @@ func NewExerciseRepository(db *sql.DB) *ExerciseRepository {
 }
 
 func (r *ExerciseRepository) GetAll() ([]models.Exercise, error) {
-	return r.GetFiltered(0, 0, 0, "")
+	return r.GetFiltered(0, 0, 0, "", 0, 0)
 }
 
-func (r *ExerciseRepository) GetFiltered(subjectID, lessonID, year int, difficulty string) ([]models.Exercise, error) {
+func (r *ExerciseRepository) GetFiltered(subjectID, lessonID, year int, difficulty string, limit, offset int) ([]models.Exercise, error) {
 	if r.db == nil {
 		return nil, ErrNoDB
 	}
@@ -44,6 +44,10 @@ func (r *ExerciseRepository) GetFiltered(subjectID, lessonID, year int, difficul
 		args = append(args, difficulty)
 	}
 	query += " ORDER BY subject_id, year DESC, id"
+	if limit > 0 {
+		query += " LIMIT ? OFFSET ?"
+		args = append(args, limit, offset)
+	}
 
 	rows, err := r.db.Query(query, args...)
 	if err != nil {
@@ -68,7 +72,7 @@ func (r *ExerciseRepository) GetFiltered(subjectID, lessonID, year int, difficul
 }
 
 // GetFilteredForUser returns exercises filtered by user's learning path and bac branch.
-func (r *ExerciseRepository) GetFilteredForUser(subjectID, lessonID, year int, difficulty string, learningPathID, bacBranchID int) ([]models.Exercise, error) {
+func (r *ExerciseRepository) GetFilteredForUser(subjectID, lessonID, year int, difficulty string, learningPathID, bacBranchID, limit, offset int) ([]models.Exercise, error) {
 	if r.db == nil {
 		return nil, ErrNoDB
 	}
@@ -101,6 +105,10 @@ func (r *ExerciseRepository) GetFilteredForUser(subjectID, lessonID, year int, d
 		args = append(args, difficulty)
 	}
 	query += " ORDER BY e.subject_id, e.year DESC, e.id"
+	if limit > 0 {
+		query += " LIMIT ? OFFSET ?"
+		args = append(args, limit, offset)
+	}
 
 	rows, err := r.db.Query(query, args...)
 	if err != nil {

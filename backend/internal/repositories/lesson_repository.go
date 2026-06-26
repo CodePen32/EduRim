@@ -14,10 +14,10 @@ func NewLessonRepository(db *sql.DB) *LessonRepository {
 }
 
 func (r *LessonRepository) GetAll() ([]models.Lesson, error) {
-	return r.GetFiltered(0, 0, 0)
+	return r.GetFiltered(0, 0, 0, 0, 0)
 }
 
-func (r *LessonRepository) GetFiltered(subjectID, teacherID, unitID int) ([]models.Lesson, error) {
+func (r *LessonRepository) GetFiltered(subjectID, teacherID, unitID, limit, offset int) ([]models.Lesson, error) {
 	if r.db == nil {
 		return nil, ErrNoDB
 	}
@@ -41,6 +41,10 @@ func (r *LessonRepository) GetFiltered(subjectID, teacherID, unitID int) ([]mode
 		args = append(args, unitID)
 	}
 	query += " ORDER BY subject_id, sort_order, id"
+	if limit > 0 {
+		query += " LIMIT ? OFFSET ?"
+		args = append(args, limit, offset)
+	}
 
 	rows, err := r.db.Query(query, args...)
 	if err != nil {
@@ -66,7 +70,7 @@ func (r *LessonRepository) GetFiltered(subjectID, teacherID, unitID int) ([]mode
 
 // GetFilteredForUser returns lessons filtered by user's learning path and bac branch.
 // For learning_path_id=3 (Bac), bacBranchID must also match.
-func (r *LessonRepository) GetFilteredForUser(subjectID, teacherID, unitID, learningPathID, bacBranchID int) ([]models.Lesson, error) {
+func (r *LessonRepository) GetFilteredForUser(subjectID, teacherID, unitID, learningPathID, bacBranchID, limit, offset int) ([]models.Lesson, error) {
 	if r.db == nil {
 		return nil, ErrNoDB
 	}
@@ -96,6 +100,10 @@ func (r *LessonRepository) GetFilteredForUser(subjectID, teacherID, unitID, lear
 		args = append(args, unitID)
 	}
 	query += " ORDER BY l.subject_id, l.sort_order, l.id"
+	if limit > 0 {
+		query += " LIMIT ? OFFSET ?"
+		args = append(args, limit, offset)
+	}
 
 	rows, err := r.db.Query(query, args...)
 	if err != nil {

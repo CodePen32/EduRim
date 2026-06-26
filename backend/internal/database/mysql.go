@@ -3,13 +3,22 @@ package database
 import (
 	"database/sql"
 	"log"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
 var DB *sql.DB
 
-func Connect(dsn string) {
+// PoolConfig holds connection pool tuning values, sourced from env vars
+// (DB_MAX_OPEN_CONNS, DB_MAX_IDLE_CONNS, DB_CONN_MAX_LIFETIME_MINUTES) via config.Config.
+type PoolConfig struct {
+	MaxOpenConns        int
+	MaxIdleConns        int
+	ConnMaxLifetimeMins int
+}
+
+func Connect(dsn string, pool PoolConfig) {
 	var err error
 	DB, err = sql.Open("mysql", dsn)
 	if err != nil {
@@ -25,9 +34,12 @@ func Connect(dsn string) {
 		return
 	}
 
-	DB.SetMaxOpenConns(25)
-	DB.SetMaxIdleConns(10)
-	log.Println("✅ تم الاتصال بقاعدة البيانات MySQL بنجاح")
+	DB.SetMaxOpenConns(pool.MaxOpenConns)
+	DB.SetMaxIdleConns(pool.MaxIdleConns)
+	DB.SetConnMaxLifetime(time.Duration(pool.ConnMaxLifetimeMins) * time.Minute)
+	DB.SetConnMaxIdleTime(time.Duration(pool.ConnMaxLifetimeMins) * time.Minute)
+	log.Printf("✅ تم الاتصال بقاعدة البيانات MySQL بنجاح (MaxOpenConns=%d MaxIdleConns=%d ConnMaxLifetime=%dm)",
+		pool.MaxOpenConns, pool.MaxIdleConns, pool.ConnMaxLifetimeMins)
 }
 
 // IsConnected تحقق من وجود اتصال نشط

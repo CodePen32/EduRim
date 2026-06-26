@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/go-sql-driver/mysql"
 )
@@ -28,6 +29,11 @@ type Config struct {
 	DBName     string
 	JWTSecret  string
 	ServerPort string
+
+	// Database connection pool
+	DBMaxOpenConns        int
+	DBMaxIdleConns        int
+	DBConnMaxLifetimeMins int
 
 	// Storage
 	StorageDriver   string // "local" or "r2"
@@ -58,6 +64,11 @@ func Load() *Config {
 		JWTSecret:  jwtSecret,
 		// Render sets PORT; fall back to SERVER_PORT, then 8081
 		ServerPort: getEnv("PORT", getEnv("SERVER_PORT", "8081")),
+
+		// Defaults sized for a small launch (Phase 1: 500-1000 concurrent users).
+		DBMaxOpenConns:        getEnvInt("DB_MAX_OPEN_CONNS", 25),
+		DBMaxIdleConns:        getEnvInt("DB_MAX_IDLE_CONNS", 10),
+		DBConnMaxLifetimeMins: getEnvInt("DB_CONN_MAX_LIFETIME_MINUTES", 5),
 
 		StorageDriver:   getEnv("STORAGE_DRIVER", "local"),
 		LocalUploadsDir: getEnv("LOCAL_UPLOADS_DIR", "uploads"),
@@ -127,4 +138,16 @@ func getEnv(key, defaultVal string) string {
 		return v
 	}
 	return defaultVal
+}
+
+func getEnvInt(key string, defaultVal int) int {
+	v := os.Getenv(key)
+	if v == "" {
+		return defaultVal
+	}
+	n, err := strconv.Atoi(v)
+	if err != nil {
+		return defaultVal
+	}
+	return n
 }

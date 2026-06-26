@@ -48,8 +48,9 @@ func (h *LessonHandler) GetLessons(c *gin.Context) {
 	subjectID, _ := strconv.Atoi(c.Query("subject_id"))
 	teacherID, _ := strconv.Atoi(c.Query("teacher_id"))
 	unitID, _ := strconv.Atoi(c.Query("unit_id"))
+	limit, offset := parsePagination(c, 100, 200)
 
-	lessons, err := h.repo.GetFiltered(subjectID, teacherID, unitID)
+	lessons, err := h.repo.GetFiltered(subjectID, teacherID, unitID, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب الدروس"})
 		return
@@ -90,8 +91,9 @@ func (h *LessonHandler) GetMyLessons(c *gin.Context) {
 	subjectID, _ := strconv.Atoi(c.Query("subject_id"))
 	teacherID, _ := strconv.Atoi(c.Query("teacher_id"))
 	unitID, _ := strconv.Atoi(c.Query("unit_id"))
+	limit, offset := parsePagination(c, 100, 200)
 
-	lessons, err := h.repo.GetFilteredForUser(subjectID, teacherID, unitID, lp, bac)
+	lessons, err := h.repo.GetFilteredForUser(subjectID, teacherID, unitID, lp, bac, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب الدروس"})
 		return

@@ -40,7 +40,8 @@ func (h *NotificationHandler) GetNotifications(c *gin.Context) {
 		}
 	}
 
-	list, err := h.repo.GetForUser(userID, lpID, bacID)
+	limit, offset := parsePagination(c, 50, 100)
+	list, err := h.repo.GetForUser(userID, lpID, bacID, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch notifications"})
 		return
@@ -99,7 +100,8 @@ func (h *NotificationHandler) GetAdminNotifications(c *gin.Context) {
 			bacID = &id
 		}
 	}
-	list, err := h.repo.GetAdminList(lpID, bacID)
+	limit, offset := parsePagination(c, 50, 100)
+	list, err := h.repo.GetAdminList(lpID, bacID, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed"})
 		return

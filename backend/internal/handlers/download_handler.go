@@ -19,7 +19,8 @@ func NewDownloadHandler(repo *repositories.DownloadRepository) *DownloadHandler 
 
 func (h *DownloadHandler) GetDownloads(c *gin.Context) {
 	userID := getUserID(c)
-	list, err := h.repo.GetForUser(userID)
+	limit, offset := parsePagination(c, 50, 100)
+	list, err := h.repo.GetForUser(userID, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch downloads"})
 		return

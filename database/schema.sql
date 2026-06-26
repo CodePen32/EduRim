@@ -42,7 +42,9 @@ CREATE TABLE IF NOT EXISTS users (
     created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (learning_path_id) REFERENCES learning_paths(id) ON DELETE SET NULL,
-    FOREIGN KEY (bac_branch_id) REFERENCES bac_branches(id) ON DELETE SET NULL
+    FOREIGN KEY (bac_branch_id) REFERENCES bac_branches(id) ON DELETE SET NULL,
+    INDEX idx_users_learning_path (learning_path_id),
+    INDEX idx_users_bac_branch (bac_branch_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
@@ -58,7 +60,9 @@ CREATE TABLE IF NOT EXISTS subjects (
     color               VARCHAR(20) DEFAULT '#1565C0',
     sort_order          INT DEFAULT 0,
     FOREIGN KEY (learning_path_id) REFERENCES learning_paths(id) ON DELETE CASCADE,
-    FOREIGN KEY (bac_branch_id) REFERENCES bac_branches(id) ON DELETE SET NULL
+    FOREIGN KEY (bac_branch_id) REFERENCES bac_branches(id) ON DELETE SET NULL,
+    INDEX idx_subjects_learning_path (learning_path_id),
+    INDEX idx_subjects_bac_branch (bac_branch_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
@@ -106,7 +110,9 @@ CREATE TABLE IF NOT EXISTS lessons (
     created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (unit_id) REFERENCES units(id) ON DELETE SET NULL,
     FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
-    FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE SET NULL
+    FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE SET NULL,
+    INDEX idx_lessons_subject (subject_id),
+    INDEX idx_lessons_teacher (teacher_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
@@ -124,7 +130,8 @@ CREATE TABLE IF NOT EXISTS exercises (
     video_solution_url  VARCHAR(500),
     created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
-    FOREIGN KEY (lesson_id) REFERENCES lessons(id) ON DELETE SET NULL
+    FOREIGN KEY (lesson_id) REFERENCES lessons(id) ON DELETE SET NULL,
+    INDEX idx_exercises_subject (subject_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
@@ -149,7 +156,8 @@ CREATE TABLE IF NOT EXISTS downloads (
     item_type   ENUM('lesson', 'exercise', 'summary') NOT NULL,
     item_id     INT UNSIGNED NOT NULL,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_downloads_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
@@ -164,7 +172,8 @@ CREATE TABLE IF NOT EXISTS progress (
     updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY unique_progress (user_id, lesson_id),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (lesson_id) REFERENCES lessons(id) ON DELETE CASCADE
+    FOREIGN KEY (lesson_id) REFERENCES lessons(id) ON DELETE CASCADE,
+    INDEX idx_progress_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
@@ -178,7 +187,8 @@ CREATE TABLE IF NOT EXISTS notifications (
     type        ENUM('info', 'lesson', 'exercise', 'system') DEFAULT 'info',
     is_read     BOOLEAN DEFAULT FALSE,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_notifications_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
@@ -204,5 +214,6 @@ CREATE TABLE IF NOT EXISTS user_subscriptions (
     end_date    DATE NOT NULL,
     status      ENUM('active', 'expired', 'cancelled') DEFAULT 'active',
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (plan_id) REFERENCES subscription_plans(id)
+    FOREIGN KEY (plan_id) REFERENCES subscription_plans(id),
+    INDEX idx_user_subscriptions_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

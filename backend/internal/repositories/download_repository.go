@@ -21,12 +21,11 @@ func NewDownloadRepository(db *sql.DB) *DownloadRepository {
 	return &DownloadRepository{db: db}
 }
 
-func (r *DownloadRepository) GetForUser(userID int) ([]Download, error) {
+func (r *DownloadRepository) GetForUser(userID, limit, offset int) ([]Download, error) {
 	if r.db == nil {
 		return nil, ErrNoDB
 	}
-	rows, err := r.db.Query(
-		`SELECT d.id, d.item_type, d.item_id,
+	query := `SELECT d.id, d.item_type, d.item_id,
 		        CASE d.item_type
 		          WHEN 'lesson'   THEN COALESCE(l.title,'')
 		          WHEN 'summary'  THEN CONCAT('ملخص: ', COALESCE(l.title,''))
@@ -39,9 +38,13 @@ func (r *DownloadRepository) GetForUser(userID int) ([]Download, error) {
 		 LEFT JOIN lessons  l ON d.item_type IN ('lesson','summary') AND l.id = d.item_id
 		 LEFT JOIN exercises e ON d.item_type = 'exercise'           AND e.id = d.item_id
 		 WHERE d.user_id = ?
-		 ORDER BY d.created_at DESC`,
-		userID,
-	)
+		 ORDER BY d.created_at DESC`
+	args := []interface{}{userID}
+	if limit > 0 {
+		query += ` LIMIT ? OFFSET ?`
+		args = append(args, limit, offset)
+	}
+	rows, err := r.db.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}

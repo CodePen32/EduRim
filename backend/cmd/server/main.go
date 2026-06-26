@@ -24,7 +24,11 @@ func main() {
 
 	// يجب تسجيل TLS config قبل أي اتصال بقاعدة البيانات
 	config.RegisterTLS()
-	database.Connect(cfg.DSN())
+	database.Connect(cfg.DSN(), database.PoolConfig{
+		MaxOpenConns:        cfg.DBMaxOpenConns,
+		MaxIdleConns:        cfg.DBMaxIdleConns,
+		ConnMaxLifetimeMins: cfg.DBConnMaxLifetimeMins,
+	})
 
 	// Set release mode when APP_ENV=production or GIN_MODE=release
 	if os.Getenv("APP_ENV") == "production" || os.Getenv("GIN_MODE") == "release" {
