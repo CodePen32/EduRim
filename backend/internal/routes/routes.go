@@ -12,15 +12,25 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	mb               = 1024 * 1024
+	defaultBodyLimit = 10 * mb
+	uploadBodyLimit  = 200 * mb // covers images(10MB)/pdfs(25MB)/receipts(10MB)/videos(200MB); UploadHandler enforces the tighter per-type limits itself
+)
+
 func Setup(r *gin.Engine, jwtSecret string, db *sql.DB) {
 	r.Use(middleware.CORS())
 	r.Use(middleware.SecurityHeaders())
 
 	// Rate limiters
-	authLimiter   := middleware.RateLimit(5, time.Minute)
+	authLimiter := middleware.RateLimit(5, time.Minute)
 	uploadLimiter := middleware.RateLimit(10, time.Minute)
 
 	api := r.Group("/api")
+	// Default body-size cap for all /api routes. Upload endpoints
+	// (/api/admin/uploads, /api/me/uploads) are registered directly on r
+	// instead of this group so they can use the larger uploadBodyLimit.
+	api.Use(middleware.MaxBodyBytes(defaultBodyLimit))
 
 	api.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok", "service": "edurim-api"})
@@ -141,8 +151,10 @@ func Setup(r *gin.Engine, jwtSecret string, db *sql.DB) {
 	api.GET("/past-exams", peHandler.GetPastExams)
 	api.GET("/subjects/:id/past-exams", peHandler.GetBySubject)
 
-	// File uploads (admin only)
-	api.POST("/admin/uploads", middleware.AdminAuth(jwtSecret), uploadLimiter, handlers.UploadHandler)
+	// File uploads (admin only). Registered directly on r (not the api
+	// group) so it does not inherit api's defaultBodyLimit and can use the
+	// larger uploadBodyLimit instead.
+	r.POST("/api/admin/uploads", middleware.MaxBodyBytes(uploadBodyLimit), middleware.AdminAuth(jwtSecret), uploadLimiter, handlers.UploadHandler)
 
 	// Admin Auth
 	adminRepo := repositories.NewAdminRepository(db)
@@ -200,7 +212,9 @@ func Setup(r *gin.Engine, jwtSecret string, db *sql.DB) {
 	// Subscriptions
 	subHandler := handlers.NewSubscriptionHandler(subRepo)
 	me.GET("/subscription", subHandler.GetMySubscription)
-	me.POST("/uploads", uploadLimiter, handlers.UploadHandler)
+	// Registered directly on r (not the api group) so it does not inherit
+	// api's defaultBodyLimit and can use the larger uploadBodyLimit instead.
+	r.POST("/api/me/uploads", middleware.MaxBodyBytes(uploadBodyLimit), middleware.Auth(jwtSecret), uploadLimiter, handlers.UploadHandler)
 	me.GET("/subscription-plans", subHandler.GetMyPlans)
 	me.GET("/subscription-requests", subHandler.GetMyRequests)
 	me.POST("/subscription-requests", authLimiter, subHandler.CreateRequest)
