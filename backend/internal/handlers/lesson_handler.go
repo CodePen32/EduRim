@@ -77,14 +77,16 @@ func (h *LessonHandler) GetLessonByID(c *gin.Context) {
 
 // GetMyLessons — GET /api/me/lessons (JWT required)
 // Returns only lessons belonging to the authenticated user's educational level.
+//
+// Resolves the user's learning_path_id/bac_branch_id and fetches their
+// lessons in a single SQL round-trip (GetFilteredForUserByID), instead of
+// a separate getUserLevel query followed by the lessons query — this was
+// the slowest /api/me/* endpoint under load testing because it paid two
+// sequential DB round-trips where every sibling endpoint paid one.
 func (h *LessonHandler) GetMyLessons(c *gin.Context) {
-	lp, bac, ok := getUserLevel(c)
-	if !ok || lp == 0 {
+	userID := getUserID(c)
+	if userID == 0 {
 		c.JSON(http.StatusOK, gin.H{"data": []models.Lesson{}, "needs_path": true})
-		return
-	}
-	if lp == 3 && bac == 0 {
-		c.JSON(http.StatusOK, gin.H{"data": []models.Lesson{}, "needs_bac_branch": true})
 		return
 	}
 
@@ -93,11 +95,21 @@ func (h *LessonHandler) GetMyLessons(c *gin.Context) {
 	unitID, _ := strconv.Atoi(c.Query("unit_id"))
 	limit, offset := parsePagination(c, 100, 200)
 
-	lessons, err := h.repo.GetFilteredForUser(subjectID, teacherID, unitID, lp, bac, limit, offset)
+	result, err := h.repo.GetFilteredForUserByID(userID, subjectID, teacherID, unitID, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "خطأ في جلب الدروس"})
 		return
 	}
+	if result.NeedsPath {
+		c.JSON(http.StatusOK, gin.H{"data": []models.Lesson{}, "needs_path": true})
+		return
+	}
+	if result.NeedsBacBranch {
+		c.JSON(http.StatusOK, gin.H{"data": []models.Lesson{}, "needs_bac_branch": true})
+		return
+	}
+
+	lessons := result.Lessons
 	if lessons == nil {
 		lessons = []models.Lesson{}
 	}
