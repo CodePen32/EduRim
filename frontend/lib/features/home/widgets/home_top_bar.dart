@@ -39,7 +39,7 @@ class _HomeTopBarState extends State<HomeTopBar> {
         ),
       ),
       title: const Text(
-        'EduRim',
+        'Concouri',
         style: TextStyle(
           fontFamily: 'Cairo',
           fontSize: 18,

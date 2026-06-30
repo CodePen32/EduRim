@@ -19,6 +19,7 @@ class _SelectLearningPathScreenState extends State<SelectLearningPathScreen>
     with SingleTickerProviderStateMixin {
   LearningPath? _selected;
   bool _saving = false;
+  bool _checking = true; // guard: verifying the user may still pick a path
   late Future<List<LearningPath>> _future;
   late AnimationController _fadeCtrl;
   late Animation<double> _fadeAnim;
@@ -36,6 +37,32 @@ class _SelectLearningPathScreenState extends State<SelectLearningPathScreen>
     _fadeCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
     _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut);
     _fadeCtrl.forward();
+    _guard();
+  }
+
+  /// Security/UX guard: the path may be chosen only during onboarding (when the
+  /// user has none yet). If a path is already set, this screen must not let it
+  /// be changed — redirect away. The backend also enforces immutability, so
+  /// this is defense-in-depth; on a network error we let onboarding proceed
+  /// (the backend remains the hard gate).
+  Future<void> _guard() async {
+    try {
+      final user = await authService.me();
+      if (!mounted) return;
+      final lp = user.learningPathId;
+      if (lp != null) {
+        // Already has a path → not a fresh onboarding.
+        if (lp == 3 && user.bacBranchId == null) {
+          Navigator.pushReplacementNamed(context, AppRoutes.selectBacBranch);
+        } else {
+          Navigator.pushReplacementNamed(context, AppRoutes.home);
+        }
+        return;
+      }
+    } catch (_) {
+      // Network/error — fall through and allow onboarding (backend enforces).
+    }
+    if (mounted) setState(() => _checking = false);
   }
 
   @override
@@ -68,7 +95,9 @@ class _SelectLearningPathScreenState extends State<SelectLearningPathScreen>
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F7FB),
         appBar: const SelectionAppBar(title: 'اختر مسارك الدراسي'),
-        body: FadeTransition(
+        body: _checking
+            ? const Center(child: CircularProgressIndicator())
+            : FadeTransition(
           opacity: _fadeAnim,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -77,6 +106,8 @@ class _SelectLearningPathScreenState extends State<SelectLearningPathScreen>
                 title: 'اختر مسارك الدراسي',
                 subtitle: 'سيتم تخصيص المحتوى والمواد حسب اختيارك',
               ),
+              const SizedBox(height: 12),
+              const SelectionStepIndicator(step: 1, total: 2),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -168,13 +199,13 @@ class _PathCard extends StatelessWidget {
               // Icon box
               AnimatedContainer(
                 duration: const Duration(milliseconds: 220),
-                width: 48,
-                height: 48,
+                width: 56,
+                height: 56,
                 decoration: BoxDecoration(
                   color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : const Color(0xFFF0F4FF),
-                  borderRadius: BorderRadius.circular(13),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(icon, size: 24, color: isSelected ? AppColors.primary : const Color(0xFF8A96B8)),
+                child: Icon(icon, size: 28, color: isSelected ? AppColors.primary : const Color(0xFF8A96B8)),
               ),
               const SizedBox(width: 12),
               // Text

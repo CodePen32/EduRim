@@ -169,23 +169,20 @@ class _HomeContentState extends State<_HomeContent> {
                   Row(
                     children: [
                       _QuickAction(
-                        icon: Icons.menu_book_rounded,
+                        icon: Icons.play_circle_outline_rounded,
                         label: 'الدروس',
-                        color: AppColors.primary,
                         onTap: () => Navigator.pushNamed(context, AppRoutes.lessonsList),
                       ),
                       const SizedBox(width: 12),
                       _QuickAction(
-                        icon: Icons.quiz_outlined,
+                        icon: Icons.assignment_outlined,
                         label: 'التمارين',
-                        color: const Color(0xFF7C3AED),
                         onTap: () => Navigator.pushNamed(context, AppRoutes.exercisesList),
                       ),
                       const SizedBox(width: 12),
                       _QuickAction(
-                        icon: Icons.people_outline,
+                        icon: Icons.groups_2_outlined,
                         label: 'الأساتذة',
-                        color: const Color(0xFF059669),
                         onTap: () => Navigator.pushNamed(context, AppRoutes.teachers),
                       ),
                     ],
@@ -312,6 +309,7 @@ class _HomeContentState extends State<_HomeContent> {
                       final s = subjects[i];
                       return SubjectCard(
                         name: s.nameAr,
+                        nameFr: s.nameFr,
                         color: _hexToColor(s.color),
                         coverImageUrl: s.coverImageUrl,
                         lessonsCount: s.lessonsCount,
@@ -344,38 +342,56 @@ class _HomeContentState extends State<_HomeContent> {
 class _QuickAction extends StatelessWidget {
   final IconData icon;
   final String label;
-  final Color color;
   final VoidCallback onTap;
 
   const _QuickAction({
     required this.icon,
     required this.label,
-    required this.color,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Unified, calm style harmonized with the primary blue: white card with a
+    // soft shadow and a circular light-blue icon badge — consistent across all
+    // three quick actions for a clean, professional look.
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
+        behavior: HitTestBehavior.opaque,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 14),
+          padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(14),
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.10)),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.08),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Column(
             children: [
-              Icon(icon, color: color, size: 26),
-              const SizedBox(height: 6),
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.10),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: AppColors.primary, size: 28),
+              ),
+              const SizedBox(height: 10),
               Text(
                 label,
-                style: TextStyle(
+                style: const TextStyle(
                   fontFamily: 'Cairo',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: color,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
                 ),
               ),
             ],

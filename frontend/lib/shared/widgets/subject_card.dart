@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/url_helper.dart';
+import '../../core/utils/subject_visuals.dart';
 
 class SubjectCard extends StatelessWidget {
   final String name;
+  final String nameFr;
   final Color color;
   final int lessonsCount;
   final VoidCallback? onTap;
@@ -12,6 +14,7 @@ class SubjectCard extends StatelessWidget {
   const SubjectCard({
     super.key,
     required this.name,
+    this.nameFr = '',
     required this.color,
     this.lessonsCount = 0,
     this.onTap,
@@ -41,9 +44,9 @@ class SubjectCard extends StatelessWidget {
                   ? Image.network(
                       resolvedUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => _placeholder(color, name),
+                      errorBuilder: (_, _, _) => _placeholder(),
                     )
-                  : _placeholder(color, name),
+                  : _placeholder(),
 
               // Light scrim at bottom only — helps badge readability
               if (hasCover)
@@ -93,37 +96,7 @@ class SubjectCard extends StatelessWidget {
     );
   }
 
-  Widget _placeholder(Color c, String label) => Container(
-    color: c.withValues(alpha: 0.08),
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          width: 52,
-          height: 52,
-          decoration: BoxDecoration(
-            color: c.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Icon(Icons.menu_book_rounded, color: c, size: 26),
-        ),
-        const SizedBox(height: 10),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontFamily: 'Cairo',
-              fontWeight: FontWeight.bold,
-              fontSize: 13,
-              color: AppColors.textPrimary,
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
-    ),
-  );
+  // Default cover when the subject has no admin-uploaded image: unified
+  // Concouri style (white subject icon on the blue gradient) chosen by name.
+  Widget _placeholder() => DefaultSubjectCover(nameAr: name, nameFr: nameFr);
 }

@@ -86,6 +86,47 @@ class SelectionSectionHeader extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────
+// Onboarding step indicator (e.g. "الخطوة 1 من 2")
+// ─────────────────────────────────────────────
+class SelectionStepIndicator extends StatelessWidget {
+  final int step;
+  final int total;
+
+  const SelectionStepIndicator({super.key, required this.step, required this.total});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Progress dots/bars
+          Row(
+            children: List.generate(total, (i) {
+              final active = i < step;
+              return Container(
+                margin: const EdgeInsetsDirectional.only(end: 6),
+                width: active ? 22 : 10,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: active ? AppColors.primary : const Color(0xFFD7DEEC),
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              );
+            }),
+          ),
+          Text(
+            'الخطوة $step من $total',
+            style: const TextStyle(fontFamily: 'Cairo', fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
 // Bottom CTA button (gradient when enabled)
 // ─────────────────────────────────────────────
 class SelectionBottomButton extends StatelessWidget {

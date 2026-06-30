@@ -64,10 +64,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _save() async {
     setState(() => _isLoading = true);
     try {
+      // Note: phone and learning path are intentionally NOT sent — they are
+      // fixed after registration (also enforced on the backend).
       await apiClient.put('/auth/profile', {
         'full_name': _nameController.text.trim(),
         'email': _emailController.text.trim(),
-        'phone': _phoneController.text.trim(),
         'city': _cityController.text.trim(),
       });
       if (!mounted) return;
@@ -144,48 +145,81 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                   const SizedBox(height: 14),
                   TextFormField(
-                    controller: _phoneController,
-                    textDirection: TextDirection.ltr,
-                    keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(labelText: 'رقم الهاتف', prefixIcon: Icon(Icons.phone_outlined)),
-                  ),
-                  const SizedBox(height: 14),
-                  TextFormField(
                     controller: _cityController,
                     decoration: const InputDecoration(labelText: 'المدينة', prefixIcon: Icon(Icons.location_city_outlined)),
                   ),
                   const SizedBox(height: 24),
 
+                  // رقم الهاتف — للعرض فقط، ثابت بعد التسجيل ولا يمكن تعديله
+                  _ReadOnlyField(
+                    icon: Icons.phone_outlined,
+                    label: 'رقم الهاتف',
+                    value: _phoneController.text.isEmpty ? 'غير محدد' : _phoneController.text,
+                    ltrValue: true,
+                  ),
+                  const SizedBox(height: 12),
+
                   // المستوى الدراسي — للعرض فقط، لا يمكن تعديله
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    decoration: BoxDecoration(
-                      color: AppColors.accentLight,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.school_outlined, color: AppColors.primary, size: 20),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('المستوى الدراسي', style: TextStyle(fontFamily: 'Cairo', fontSize: 12, color: AppColors.textSecondary)),
-                            const SizedBox(height: 2),
-                            Text(_levelLabel, style: const TextStyle(fontFamily: 'Cairo', fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                          ],
-                        ),
-                        const Spacer(),
-                        const Icon(Icons.lock_outline, color: AppColors.textLight, size: 18),
-                      ],
-                    ),
+                  _ReadOnlyField(
+                    icon: Icons.school_outlined,
+                    label: 'المستوى الدراسي',
+                    value: _levelLabel,
                   ),
                   const SizedBox(height: 32),
                   PrimaryButton(label: 'حفظ التغييرات', isLoading: _isLoading, onPressed: _save),
                 ],
               ),
             ),
+    );
+  }
+}
+
+/// Read-only profile info (phone, learning level) — shown but never editable;
+/// the lock icon signals it is fixed after registration.
+class _ReadOnlyField extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final bool ltrValue;
+
+  const _ReadOnlyField({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.ltrValue = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: AppColors.accentLight,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: AppColors.primary, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: const TextStyle(fontFamily: 'Cairo', fontSize: 12, color: AppColors.textSecondary)),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  textDirection: ltrValue ? TextDirection.ltr : null,
+                  style: const TextStyle(fontFamily: 'Cairo', fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          const Icon(Icons.lock_outline, color: AppColors.textLight, size: 18),
+        ],
+      ),
     );
   }
 }

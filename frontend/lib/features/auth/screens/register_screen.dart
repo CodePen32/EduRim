@@ -96,7 +96,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       const SizedBox(height: 12),
                       const Text(
-                        'مرحباً بك في EduRim',
+                        'مرحباً بك في Concouri',
                         style: TextStyle(fontFamily: 'Cairo', fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
                       ),
                       const SizedBox(height: 4),

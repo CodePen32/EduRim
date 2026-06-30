@@ -18,6 +18,7 @@ class _SelectBacBranchScreenState extends State<SelectBacBranchScreen>
     with SingleTickerProviderStateMixin {
   BacBranch? _selected;
   bool _saving = false;
+  bool _checking = true; // guard: verifying the user may still pick a branch
   late Future<List<BacBranch>> _future;
   late AnimationController _fadeCtrl;
   late Animation<double> _fadeAnim;
@@ -36,6 +37,28 @@ class _SelectBacBranchScreenState extends State<SelectBacBranchScreen>
     _fadeCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
     _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut);
     _fadeCtrl.forward();
+    _guard();
+  }
+
+  /// Guard: the bac branch may be chosen only during BAC onboarding — i.e. the
+  /// user is on the BAC path (lp==3) and has no branch yet. Otherwise redirect
+  /// home. Backend also enforces branch immutability once set (defense-in-depth);
+  /// on a network error we proceed and let the backend remain the hard gate.
+  Future<void> _guard() async {
+    try {
+      final user = await authService.me();
+      if (!mounted) return;
+      final lp = user.learningPathId;
+      final bac = user.bacBranchId;
+      final canPick = lp == 3 && bac == null;
+      if (!canPick) {
+        Navigator.pushReplacementNamed(context, AppRoutes.home);
+        return;
+      }
+    } catch (_) {
+      // Network/error — allow; backend enforces immutability.
+    }
+    if (mounted) setState(() => _checking = false);
   }
 
   @override
@@ -64,7 +87,9 @@ class _SelectBacBranchScreenState extends State<SelectBacBranchScreen>
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F7FB),
         appBar: const SelectionAppBar(title: 'اختر شعبة الباكالوريا', showBack: true),
-        body: FadeTransition(
+        body: _checking
+            ? const Center(child: CircularProgressIndicator())
+            : FadeTransition(
           opacity: _fadeAnim,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -73,6 +98,8 @@ class _SelectBacBranchScreenState extends State<SelectBacBranchScreen>
                 title: 'اختر شعبتك',
                 subtitle: 'سيتم عرض المواد والمحتوى المناسب لشعبتك فقط',
               ),
+              const SizedBox(height: 12),
+              const SelectionStepIndicator(step: 2, total: 2),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

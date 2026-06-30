@@ -6,6 +6,8 @@ import '../../../core/routes/app_routes.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/progress_service.dart';
+import '../../../core/services/subscription_service.dart';
+import '../../../core/models/subscription.dart';
 import '../../../shared/widgets/app_header.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -20,6 +22,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   UserModel? _user;
   ProgressStats? _stats;
+  MySubscription? _subscription;
   bool _loading = true;
   String? _error;
 
@@ -35,7 +38,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final user = await authService.me();
       ProgressStats? stats;
       try { stats = await progressService.getStats(); } catch (_) {}
-      if (mounted) setState(() { _user = user; _stats = stats; _loading = false; });
+      MySubscription? subscription;
+      try { subscription = await subscriptionService.getMySubscription(); } catch (_) {}
+      if (mounted) setState(() { _user = user; _stats = stats; _subscription = subscription; _loading = false; });
     } catch (e) {
       if (!mounted) return;
       final isAuth = e is ApiException && (e.statusCode == 401 || e.statusCode == 403);
@@ -147,6 +152,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                       Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                        child: _SubscriptionCard(
+                          subscription: _subscription,
+                          onTap: () async {
+                            await Navigator.pushNamed(context, AppRoutes.mySubscription);
+                            if (mounted) _loadUser();
+                          },
+                        ),
+                      ),
+                      Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
                           children: [
@@ -158,7 +173,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 widget.onProfileUpdated?.call();
                               }
                             }),
-                            _ProfileTile(icon: Icons.school_outlined, label: 'المسار الدراسي', onTap: () => Navigator.pushNamed(context, AppRoutes.selectLearningPath)),
                             _ProfileTile(icon: Icons.calculate_outlined, label: 'حاسبة المعدل', onTap: () => Navigator.pushNamed(context, AppRoutes.averageCalculator)),
                             _ProfileTile(icon: Icons.notifications_outlined, label: 'الإشعارات', onTap: () => Navigator.pushNamed(context, AppRoutes.notifications)),
                             _ProfileTile(icon: Icons.help_outline, label: 'المساعدة', onTap: () {}),
@@ -202,6 +216,75 @@ class _StatsCard extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Shows whether the student is a subscriber ("مشترك") or a free viewer
+/// ("متفرّج / غير مشترك"). Uses only data from GET /me/subscription. When not
+/// subscribed, tapping opens the subscription page.
+class _SubscriptionCard extends StatelessWidget {
+  final MySubscription? subscription;
+  final VoidCallback onTap;
+
+  const _SubscriptionCard({required this.subscription, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final sub = subscription;
+    final isSubscribed = sub != null && sub.hasSubscription && sub.isActive;
+
+    final Color bg = isSubscribed ? AppColors.success : AppColors.warning;
+    final IconData icon = isSubscribed ? Icons.verified_rounded : Icons.lock_clock_outlined;
+    final String title = isSubscribed ? 'مشترك' : 'متفرّج (غير مشترك)';
+
+    String subtitle;
+    if (isSubscribed) {
+      final parts = <String>[];
+      if (sub.planName.isNotEmpty) parts.add(sub.planName);
+      if (sub.daysRemaining > 0) {
+        parts.add('متبقٍ ${sub.daysRemaining} يوم');
+      } else if (sub.endDate.isNotEmpty) {
+        parts.add('ينتهي ${sub.endDate}');
+      }
+      subtitle = parts.isEmpty ? 'اشتراك نشط' : parts.join(' · ');
+    } else {
+      subtitle = 'اشترك للوصول لكامل الدروس والمحتوى';
+    }
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: bg.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: bg.withValues(alpha: 0.35)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(color: bg.withValues(alpha: 0.18), borderRadius: BorderRadius.circular(12)),
+              child: Icon(icon, color: bg, size: 24),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: TextStyle(fontFamily: 'Cairo', fontSize: 15, fontWeight: FontWeight.bold, color: bg == AppColors.success ? AppColors.primaryDark : AppColors.textPrimary)),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: const TextStyle(fontFamily: 'Cairo', fontSize: 12, color: AppColors.textSecondary)),
+                ],
+              ),
+            ),
+            if (!isSubscribed)
+              const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textLight),
+          ],
+        ),
       ),
     );
   }

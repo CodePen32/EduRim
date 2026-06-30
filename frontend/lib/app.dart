@@ -9,7 +9,7 @@ class EdurImApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Edurim',
+      title: 'Concouri',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       locale: const Locale('ar', 'MR'),

@@ -4,6 +4,7 @@ import '../../../core/models/subject.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/subject_service.dart';
 import '../../../core/utils/url_helper.dart';
+import '../../../core/utils/subject_visuals.dart';
 
 class SubjectsScreen extends StatefulWidget {
   const SubjectsScreen({super.key});
@@ -19,15 +20,6 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
   void initState() {
     super.initState();
     _future = subjectService.getMySubjects();
-  }
-
-  Color _hexToColor(String hex) {
-    try {
-      final h = hex.replaceAll('#', '');
-      return Color(int.parse('FF$h', radix: 16));
-    } catch (_) {
-      return AppColors.primary;
-    }
   }
 
   @override
@@ -81,7 +73,6 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
             itemCount: subjects.length,
             itemBuilder: (context, i) {
               final s = subjects[i];
-              final color = _hexToColor(s.color);
               return GestureDetector(
                 onTap: () => Navigator.pushNamed(context, AppRoutes.subjectDetails, arguments: s),
                 child: Container(
@@ -99,10 +90,10 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                           Image.network(
                             buildFileUrl(s.coverImageUrl),
                             fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => Container(color: color.withValues(alpha: 0.15)),
+                            errorBuilder: (_, _, _) => DefaultSubjectCover(nameAr: s.nameAr, nameFr: s.nameFr, showLabel: false),
                           )
                         else
-                          Container(color: color.withValues(alpha: 0.12)),
+                          DefaultSubjectCover(nameAr: s.nameAr, nameFr: s.nameFr, showLabel: false),
                         // overlay أسفل
                         Positioned.fill(
                           child: DecoratedBox(
