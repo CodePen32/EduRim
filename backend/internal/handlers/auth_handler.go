@@ -290,3 +290,29 @@ func (h *AuthHandler) UpdateProfile(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "تم تحديث الملف الشخصي بنجاح", "user": user})
 }
+
+// SaveFCMToken stores/updates the caller's FCM push token (one per user, MVP).
+// POST /api/me/fcm-token  { "fcm_token": "..." }
+func (h *AuthHandler) SaveFCMToken(c *gin.Context) {
+	userID := getUserID(c)
+	if userID == 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "غير مصرح"})
+		return
+	}
+	var req struct {
+		FCMToken string `json:"fcm_token" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil || req.FCMToken == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "fcm_token مطلوب"})
+		return
+	}
+	if database.DB == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "قاعدة البيانات غير متاحة"})
+		return
+	}
+	if _, err := database.DB.Exec(`UPDATE users SET fcm_token = ? WHERE id = ?`, req.FCMToken, userID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "تعذر حفظ الرمز"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "تم حفظ الرمز"})
+}

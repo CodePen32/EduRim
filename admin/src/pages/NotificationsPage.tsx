@@ -80,7 +80,7 @@ export function NotificationsPage() {
             <label className="text-sm font-medium text-gray-700 block mb-1">الرسالة *</label>
             <textarea required className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" rows={4} value={body} onChange={(e) => setBody(e.target.value)} />
           </div>
-          <Select label="النوع" value={type} options={[{value:'info',label:'معلومة'},{value:'warning',label:'تحذير'},{value:'success',label:'نجاح'},{value:'announcement',label:'إعلان'}]} onChange={(e) => setType(e.target.value)} />
+          <Select label="النوع" value={type} options={[{value:'info',label:'معلومة'},{value:'lesson',label:'درس'},{value:'exercise',label:'تمرين'},{value:'system',label:'نظام'}]} onChange={(e) => setType(e.target.value)} />
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700">
             سيُرسل هذا الإشعار لطلاب <strong>{scope?.label}</strong> فقط.
           </div>

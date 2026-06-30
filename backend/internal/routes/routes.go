@@ -165,7 +165,7 @@ func Setup(r *gin.Engine, jwtSecret string, db *sql.DB) {
 
 	// Admin Content
 	adminContentRepo := repositories.NewAdminContentRepository(db)
-	adminContentHandler := handlers.NewAdminContentHandler(adminContentRepo, peRepo)
+	adminContentHandler := handlers.NewAdminContentHandler(adminContentRepo, peRepo, notifRepo)
 	admin := api.Group("/admin", middleware.AdminAuth(jwtSecret))
 	admin.GET("/dashboard/stats", adminContentHandler.GetStats)
 	admin.GET("/subjects", adminContentHandler.GetSubjects)
@@ -205,6 +205,7 @@ func Setup(r *gin.Engine, jwtSecret string, db *sql.DB) {
 
 	// Student Announcements + Past Exams (JWT protected, level isolated)
 	me := api.Group("/me", middleware.Auth(jwtSecret))
+	me.POST("/fcm-token", authHandler.SaveFCMToken)
 	me.GET("/announcements", announcementHandler.GetMyAnnouncements)
 	me.GET("/past-exams", peHandler.GetMyPastExams)
 	me.GET("/subjects/:id/past-exams", peHandler.GetMyPastExamsBySubject)

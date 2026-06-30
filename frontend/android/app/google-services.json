@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "838090836182",
+    "project_id": "concouri",
+    "storage_bucket": "concouri.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:838090836182:android:19c278e3d52eff6cefa177",
+        "android_client_info": {
+          "package_name": "mr.edurim.edurim"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJS7h6yPDkwkG1jiy8OnuB2FJhUOGQx_A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

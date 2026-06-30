@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../network/api_client.dart';
 import '../models/user.dart';
+import 'push_service.dart';
 
 class AuthService {
   static const _tokenKey = 'auth_token';
@@ -62,6 +64,7 @@ class AuthService {
     final res = await apiClient.post('/auth/register', body);
     final token = res['token'] as String;
     await saveToken(token);
+    _registerPush();
     return UserModel.fromJson(res['user'] as Map<String, dynamic>);
   }
 
@@ -75,7 +78,15 @@ class AuthService {
     });
     final token = res['token'] as String;
     await saveToken(token);
+    _registerPush();
     return UserModel.fromJson(res['user'] as Map<String, dynamic>);
+  }
+
+  /// Best-effort: send the FCM token after authentication. Never throws.
+  void _registerPush() {
+    if (kIsWeb) return;
+    // ignore: unawaited_futures
+    pushService.registerToken();
   }
 
   Future<UserModel> me() async {

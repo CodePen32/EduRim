@@ -154,6 +154,20 @@ func (r *AdminContentRepository) GetAllLessons(learningPathID, bacBranchID int) 
 	return result, rows.Err()
 }
 
+// GetSubjectScope returns the learning_path_id, bac_branch_id (nullable) and Arabic name of a subject.
+func (r *AdminContentRepository) GetSubjectScope(subjectID int) (lpID int, bacID *int, nameAr string, err error) {
+	var bac sql.NullInt64
+	err = r.db.QueryRow(`SELECT learning_path_id, bac_branch_id, name_ar FROM subjects WHERE id = ?`, subjectID).Scan(&lpID, &bac, &nameAr)
+	if err != nil {
+		return 0, nil, "", err
+	}
+	if bac.Valid && bac.Int64 > 0 {
+		v := int(bac.Int64)
+		bacID = &v
+	}
+	return lpID, bacID, nameAr, nil
+}
+
 func (r *AdminContentRepository) CreateLesson(title, desc, videoURL, summaryURL string, dur int, isFree bool, subjectID, teacherID int, coverURL string) (int, error) {
 	var tID interface{} = nil
 	if teacherID > 0 {

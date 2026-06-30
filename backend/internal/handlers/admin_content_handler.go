@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -11,12 +12,13 @@ import (
 )
 
 type AdminContentHandler struct {
-	repo   *repositories.AdminContentRepository
-	peRepo *repositories.PastExamRepository
+	repo      *repositories.AdminContentRepository
+	peRepo    *repositories.PastExamRepository
+	notifRepo *repositories.NotificationRepository
 }
 
-func NewAdminContentHandler(repo *repositories.AdminContentRepository, peRepo *repositories.PastExamRepository) *AdminContentHandler {
-	return &AdminContentHandler{repo: repo, peRepo: peRepo}
+func NewAdminContentHandler(repo *repositories.AdminContentRepository, peRepo *repositories.PastExamRepository, notifRepo *repositories.NotificationRepository) *AdminContentHandler {
+	return &AdminContentHandler{repo: repo, peRepo: peRepo, notifRepo: notifRepo}
 }
 
 func scopeFilters(c *gin.Context) (int, int) {
@@ -164,6 +166,17 @@ func (h *AdminContentHandler) CreateLesson(c *gin.Context) {
 		return
 	}
 	cache.ClearContentCaches()
+
+	// Best-effort auto-notification for students in the subject's scope.
+	// Lesson creation already succeeded; notification failures must NOT fail the request.
+	if h.notifRepo != nil {
+		if lpID, bacID, nameAr, serr := h.repo.GetSubjectScope(req.SubjectID); serr == nil {
+			msg := fmt.Sprintf("تمت إضافة درس جديد: «%s» في مادة %s", req.Title, nameAr)
+			lp := lpID
+			_ = h.notifRepo.Create(nil, "درس جديد", msg, "lesson", &lp, bacID)
+		}
+	}
+
 	c.JSON(http.StatusCreated, gin.H{"id": id, "message": "تم إنشاء الدرس بنجاح"})
 }
 
