@@ -82,20 +82,26 @@ Future<void> openExternalUrl(String? rawUrl, {BuildContext? context}) async {
     return;
   }
 
-  // Mobile/Desktop — url_launcher
+  // Mobile/Desktop — url_launcher.
+  // Note: canLaunchUrl is unreliable on Android 11+ (package visibility), so we
+  // attempt to launch directly. Try the external app first (e.g. WhatsApp),
+  // then fall back to the in-app/browser handler. Only report failure if all fail.
   final uri = Uri.tryParse(url);
   if (uri == null) {
     _showSnack(context, 'الرابط غير صالح');
     return;
   }
-  final canLaunch = await canLaunchUrl(uri);
-  if (!canLaunch) {
-    if (context != null && context.mounted) {
-      _showSnack(context, 'تعذر فتح الرابط');
+  for (final mode in const [LaunchMode.externalApplication, LaunchMode.platformDefault, LaunchMode.inAppBrowserView]) {
+    try {
+      final ok = await launchUrl(uri, mode: mode);
+      if (ok) return;
+    } catch (_) {
+      // try next mode
     }
-    return;
   }
-  await launchUrl(uri, mode: LaunchMode.externalApplication);
+  if (context != null && context.mounted) {
+    _showSnack(context, 'تعذر فتح الرابط');
+  }
 }
 
 void _showSnack(BuildContext? context, String msg) {
