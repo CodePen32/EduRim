@@ -6,16 +6,18 @@ import (
 
 	"edurim/backend/internal/database"
 	"edurim/backend/internal/repositories"
+	"edurim/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
 
 type NotificationHandler struct {
-	repo *repositories.NotificationRepository
+	repo    *repositories.NotificationRepository
+	pushSvc *services.PushService
 }
 
-func NewNotificationHandler(repo *repositories.NotificationRepository) *NotificationHandler {
-	return &NotificationHandler{repo: repo}
+func NewNotificationHandler(repo *repositories.NotificationRepository, pushSvc *services.PushService) *NotificationHandler {
+	return &NotificationHandler{repo: repo, pushSvc: pushSvc}
 }
 
 func (h *NotificationHandler) GetNotifications(c *gin.Context) {
@@ -84,6 +86,26 @@ func (h *NotificationHandler) CreateNotification(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "تعذر إنشاء الإشعار"})
 		return
 	}
+
+	// Best-effort push (disabled if Firebase not configured). Never fails the request.
+	if h.pushSvc != nil && h.pushSvc.Enabled() {
+		var tokens []string
+		if req.UserID != nil {
+			// Targeted at one user.
+			if t, terr := h.repo.GetFCMTokenByUser(*req.UserID); terr == nil && t != "" {
+				tokens = []string{t}
+			}
+		} else if req.LearningPathID != nil {
+			// Scoped broadcast to a learning path / bac branch.
+			if ts, terr := h.repo.GetFCMTokensByScope(*req.LearningPathID, req.BacBranchID); terr == nil {
+				tokens = ts
+			}
+		}
+		if len(tokens) > 0 {
+			h.pushSvc.SendToTokens(tokens, req.Title, req.Message)
+		}
+	}
+
 	c.JSON(http.StatusCreated, gin.H{"message": "تم إرسال الإشعار بنجاح"})
 }
 

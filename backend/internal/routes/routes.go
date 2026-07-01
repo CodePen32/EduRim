@@ -117,7 +117,7 @@ func Setup(r *gin.Engine, jwtSecret string, db *sql.DB, pushSvc *services.PushSe
 
 	// Notifications (محمي بـ JWT)
 	notifRepo := repositories.NewNotificationRepository(db)
-	notifHandler := handlers.NewNotificationHandler(notifRepo)
+	notifHandler := handlers.NewNotificationHandler(notifRepo, pushSvc)
 	notifs := api.Group("/notifications", middleware.Auth(jwtSecret))
 	notifs.GET("", notifHandler.GetNotifications)
 	notifs.GET("/unread-count", notifHandler.UnreadCount)
@@ -191,7 +191,7 @@ func Setup(r *gin.Engine, jwtSecret string, db *sql.DB, pushSvc *services.PushSe
 	admin.PUT("/teachers/:id", adminContentHandler.UpdateTeacher)
 	admin.DELETE("/teachers/:id", adminContentHandler.DeleteTeacher)
 	// Admin Notifications
-	notifHandler2 := handlers.NewNotificationHandler(notifRepo)
+	notifHandler2 := handlers.NewNotificationHandler(notifRepo, pushSvc)
 	admin.GET("/notifications", notifHandler2.GetAdminNotifications)
 	admin.POST("/notifications", notifHandler2.CreateNotification)
 

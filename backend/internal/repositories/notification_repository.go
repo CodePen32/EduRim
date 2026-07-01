@@ -90,6 +90,54 @@ func (r *NotificationRepository) UnreadCount(userID int) (int, error) {
 	return count, err
 }
 
+// GetFCMTokensByScope returns non-empty FCM tokens of students in a learning
+// path (and bac branch when set). Never returns NULL/empty tokens. No logging of tokens.
+func (r *NotificationRepository) GetFCMTokensByScope(learningPathID int, bacBranchID *int) ([]string, error) {
+	if r.db == nil {
+		return nil, ErrNoDB
+	}
+	query := `SELECT fcm_token FROM users
+	          WHERE fcm_token IS NOT NULL AND fcm_token <> ''
+	            AND learning_path_id = ?
+	            AND ( ? IS NULL OR bac_branch_id = ? OR bac_branch_id IS NULL )`
+	var bac interface{}
+	if bacBranchID != nil {
+		bac = *bacBranchID
+	}
+	rows, err := r.db.Query(query, learningPathID, bac, bac)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var tokens []string
+	for rows.Next() {
+		var t string
+		if err := rows.Scan(&t); err != nil {
+			continue
+		}
+		if t != "" {
+			tokens = append(tokens, t)
+		}
+	}
+	return tokens, nil
+}
+
+// GetFCMTokenByUser returns the FCM token of a single user, or empty if none.
+func (r *NotificationRepository) GetFCMTokenByUser(userID int) (string, error) {
+	if r.db == nil {
+		return "", ErrNoDB
+	}
+	var tok sql.NullString
+	err := r.db.QueryRow(`SELECT fcm_token FROM users WHERE id = ?`, userID).Scan(&tok)
+	if err != nil {
+		return "", err
+	}
+	if tok.Valid {
+		return tok.String, nil
+	}
+	return "", nil
+}
+
 func (r *NotificationRepository) Create(userID *int, title, message, notifType string, learningPathID, bacBranchID *int) error {
 	if r.db == nil {
 		return ErrNoDB
