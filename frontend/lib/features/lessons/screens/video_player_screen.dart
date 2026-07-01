@@ -88,9 +88,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       debugPrint('Initialized — hasError=${ctrl.value.hasError} errorDesc=${ctrl.value.errorDescription} size=${ctrl.value.size}');
 
       if (ctrl.value.hasError) {
-        final desc = ctrl.value.errorDescription ?? 'خطأ غير معروف';
+        debugPrint('VideoPlayer init error: ${ctrl.value.errorDescription}');
         ctrl.dispose();
-        if (mounted) setState(() { _initializing = false; _error = 'فشل التشغيل: $desc'; });
+        if (mounted) setState(() { _initializing = false; _error = 'تعذر تشغيل الفيديو. قد يكون الملف غير متوفر أو الرابط غير صالح.'; });
         return;
       }
 
@@ -101,7 +101,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       setState(() => _initializing = false);
     } catch (e) {
       debugPrint('VideoPlayer exception: $e');
-      if (mounted) setState(() { _initializing = false; _error = 'تعذر تشغيل الفيديو: $e'; });
+      if (mounted) setState(() { _initializing = false; _error = 'تعذر تشغيل الفيديو. قد يكون الملف غير متوفر أو الرابط غير صالح.'; });
     }
   }
 
