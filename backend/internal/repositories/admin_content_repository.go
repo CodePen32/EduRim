@@ -168,6 +168,35 @@ func (r *AdminContentRepository) GetSubjectScope(subjectID int) (lpID int, bacID
 	return lpID, bacID, nameAr, nil
 }
 
+// GetFCMTokensByScope returns non-empty FCM tokens of students in the given
+// learning path (and bac branch, when the subject has one). Never returns NULL/empty tokens.
+func (r *AdminContentRepository) GetFCMTokensByScope(learningPathID int, bacBranchID *int) ([]string, error) {
+	query := `SELECT fcm_token FROM users
+	          WHERE fcm_token IS NOT NULL AND fcm_token <> ''
+	            AND learning_path_id = ?
+	            AND ( ? IS NULL OR bac_branch_id = ? OR bac_branch_id IS NULL )`
+	var bac interface{}
+	if bacBranchID != nil {
+		bac = *bacBranchID
+	}
+	rows, err := r.db.Query(query, learningPathID, bac, bac)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var tokens []string
+	for rows.Next() {
+		var t string
+		if err := rows.Scan(&t); err != nil {
+			continue
+		}
+		if t != "" {
+			tokens = append(tokens, t)
+		}
+	}
+	return tokens, nil
+}
+
 func (r *AdminContentRepository) CreateLesson(title, desc, videoURL, summaryURL string, dur int, isFree bool, subjectID, teacherID int, coverURL string) (int, error) {
 	var tID interface{} = nil
 	if teacherID > 0 {

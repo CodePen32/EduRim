@@ -36,6 +36,14 @@ admin/.env.production
 *.sql.bak
 *_backup_for_railway.sql
 
+# ── Firebase service account (NEVER commit) ──
+firebase-service-account.json
+**/firebase-service-account.json
+*serviceAccount*.json
+**/*serviceAccount*.json
+firebase-adminsdk*.json
+**/firebase-adminsdk*.json
+
 # ── Build outputs ──
 frontend/build/
 admin/dist/

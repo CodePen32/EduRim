@@ -41,12 +41,15 @@ func main() {
 	handlers.SetFileReader(services.NewFileReader(cfg))
 	log.Printf("Storage driver: %s", strings.ToUpper(cfg.StorageDriver))
 
+	// Firebase push (optional; disabled if credentials absent)
+	pushSvc := services.NewPushService(cfg.FirebaseCredentialsJSON, cfg.FirebaseCredentialsFile)
+
 	// Use gin.New() + Recovery only — CORS and SecurityHeaders are applied in routes.Setup
 	r := gin.New()
 	r.Use(gin.Recovery())
 	// Local uploads served from disk (no-op in production when using R2)
 	r.Static("/uploads", "./uploads")
-	routes.Setup(r, cfg.JWTSecret, database.DB)
+	routes.Setup(r, cfg.JWTSecret, database.DB, pushSvc)
 
 	addr := ":" + cfg.ServerPort
 	log.Printf("Edurim API running on http://localhost%s", addr)

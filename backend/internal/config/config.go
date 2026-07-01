@@ -46,6 +46,11 @@ type Config struct {
 	R2SecretAccessKey string
 	R2Bucket          string
 	R2PublicURL       string
+
+	// Firebase Cloud Messaging (push notifications). Optional:
+	// if both are empty, push is disabled and the server runs normally.
+	FirebaseCredentialsJSON string // full service-account JSON (preferred on Render)
+	FirebaseCredentialsFile string // path to service-account JSON (local dev)
 }
 
 func Load() *Config {
@@ -79,6 +84,9 @@ func Load() *Config {
 		R2SecretAccessKey: getEnv("R2_SECRET_ACCESS_KEY", ""),
 		R2Bucket:          getEnv("R2_BUCKET", ""),
 		R2PublicURL:       getEnv("R2_PUBLIC_URL", ""),
+
+		FirebaseCredentialsJSON: getEnv("FIREBASE_CREDENTIALS_JSON", ""),
+		FirebaseCredentialsFile: getEnv("FIREBASE_CREDENTIALS_FILE", ""),
 	}
 }
 

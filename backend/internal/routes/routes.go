@@ -8,6 +8,7 @@ import (
 	"edurim/backend/internal/handlers"
 	"edurim/backend/internal/middleware"
 	"edurim/backend/internal/repositories"
+	"edurim/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,7 +19,7 @@ const (
 	uploadBodyLimit  = 200 * mb // covers images(10MB)/pdfs(25MB)/receipts(10MB)/videos(200MB); UploadHandler enforces the tighter per-type limits itself
 )
 
-func Setup(r *gin.Engine, jwtSecret string, db *sql.DB) {
+func Setup(r *gin.Engine, jwtSecret string, db *sql.DB, pushSvc *services.PushService) {
 	r.Use(middleware.CORS())
 	r.Use(middleware.SecurityHeaders())
 
@@ -165,7 +166,7 @@ func Setup(r *gin.Engine, jwtSecret string, db *sql.DB) {
 
 	// Admin Content
 	adminContentRepo := repositories.NewAdminContentRepository(db)
-	adminContentHandler := handlers.NewAdminContentHandler(adminContentRepo, peRepo, notifRepo)
+	adminContentHandler := handlers.NewAdminContentHandler(adminContentRepo, peRepo, notifRepo, pushSvc)
 	admin := api.Group("/admin", middleware.AdminAuth(jwtSecret))
 	admin.GET("/dashboard/stats", adminContentHandler.GetStats)
 	admin.GET("/subjects", adminContentHandler.GetSubjects)

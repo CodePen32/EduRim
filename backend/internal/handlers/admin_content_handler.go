@@ -7,6 +7,7 @@ import (
 
 	"edurim/backend/internal/cache"
 	"edurim/backend/internal/repositories"
+	"edurim/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,10 +16,11 @@ type AdminContentHandler struct {
 	repo      *repositories.AdminContentRepository
 	peRepo    *repositories.PastExamRepository
 	notifRepo *repositories.NotificationRepository
+	pushSvc   *services.PushService
 }
 
-func NewAdminContentHandler(repo *repositories.AdminContentRepository, peRepo *repositories.PastExamRepository, notifRepo *repositories.NotificationRepository) *AdminContentHandler {
-	return &AdminContentHandler{repo: repo, peRepo: peRepo, notifRepo: notifRepo}
+func NewAdminContentHandler(repo *repositories.AdminContentRepository, peRepo *repositories.PastExamRepository, notifRepo *repositories.NotificationRepository, pushSvc *services.PushService) *AdminContentHandler {
+	return &AdminContentHandler{repo: repo, peRepo: peRepo, notifRepo: notifRepo, pushSvc: pushSvc}
 }
 
 func scopeFilters(c *gin.Context) (int, int) {
@@ -168,12 +170,18 @@ func (h *AdminContentHandler) CreateLesson(c *gin.Context) {
 	cache.ClearContentCaches()
 
 	// Best-effort auto-notification for students in the subject's scope.
-	// Lesson creation already succeeded; notification failures must NOT fail the request.
-	if h.notifRepo != nil {
-		if lpID, bacID, nameAr, serr := h.repo.GetSubjectScope(req.SubjectID); serr == nil {
-			msg := fmt.Sprintf("تمت إضافة درس جديد: «%s» في مادة %s", req.Title, nameAr)
-			lp := lpID
+	// Lesson creation already succeeded; notification/push failures must NOT fail the request.
+	if lpID, bacID, nameAr, serr := h.repo.GetSubjectScope(req.SubjectID); serr == nil {
+		msg := fmt.Sprintf("تمت إضافة درس جديد: «%s» في مادة %s", req.Title, nameAr)
+		lp := lpID
+		if h.notifRepo != nil {
 			_ = h.notifRepo.Create(nil, "درس جديد", msg, "lesson", &lp, bacID)
+		}
+		// Push notification (best-effort; disabled if Firebase not configured).
+		if h.pushSvc != nil && h.pushSvc.Enabled() {
+			if tokens, terr := h.repo.GetFCMTokensByScope(lpID, bacID); terr == nil {
+				h.pushSvc.SendToTokens(tokens, "درس جديد", msg)
+			}
 		}
 	}
 
