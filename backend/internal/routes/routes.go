@@ -205,8 +205,13 @@ func Setup(r *gin.Engine, jwtSecret string, db *sql.DB, pushSvc *services.PushSe
 	admin.PATCH("/announcements/:id/toggle-active", announcementHandler.ToggleActive)
 
 	// Student Announcements + Past Exams (JWT protected, level isolated)
+	// Feature suggestions
+	suggestionRepo := repositories.NewSuggestionRepository(db)
+	suggestionHandler := handlers.NewSuggestionHandler(suggestionRepo)
+
 	me := api.Group("/me", middleware.Auth(jwtSecret))
 	me.POST("/fcm-token", authHandler.SaveFCMToken)
+	me.POST("/suggestions", authLimiter, suggestionHandler.Create)
 	me.GET("/announcements", announcementHandler.GetMyAnnouncements)
 	me.GET("/past-exams", peHandler.GetMyPastExams)
 	me.GET("/subjects/:id/past-exams", peHandler.GetMyPastExamsBySubject)
@@ -226,6 +231,8 @@ func Setup(r *gin.Engine, jwtSecret string, db *sql.DB, pushSvc *services.PushSe
 	admin.DELETE("/subscription-plans/:id", subHandler.DeletePlan)
 	admin.GET("/subscription-requests", subHandler.GetAdminRequests)
 	admin.GET("/subscription-requests/pending-count", subHandler.PendingRequestsCount)
+	admin.GET("/suggestions", suggestionHandler.GetAll)
+	admin.PATCH("/suggestions/:id/status", suggestionHandler.UpdateStatus)
 	admin.PATCH("/subscription-requests/:id/approve", subHandler.ApproveRequest)
 	admin.PATCH("/subscription-requests/:id/reject", subHandler.RejectRequest)
 	admin.GET("/user-subscriptions", subHandler.GetAdminUserSubscriptions)
