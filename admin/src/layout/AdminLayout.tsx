@@ -24,6 +24,7 @@ const NAV = [
   { to: '/subscription-plans',      label: 'خطط الاشتراك',      icon: CreditCardIcon },
   { to: '/user-subscriptions',      label: 'اشتراكات الطلاب',   icon: CardCheckIcon },
   { to: '/subscription-requests',   label: 'طلبات الاشتراك',    icon: RequestIcon },
+  { to: '/suggestions',             label: 'اقتراحات التطوير',   icon: LightbulbIcon },
 ]
 
 export function AdminLayout() {
@@ -293,6 +294,9 @@ function CreditCardIcon({ size, color }: { size: number; color: string }) {
 }
 function RequestIcon({ size, color }: { size: number; color: string }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill={color}><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+}
+function LightbulbIcon({ size, color }: { size: number; color: string }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill={color}><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/></svg>
 }
 function CardCheckIcon({ size, color }: { size: number; color: string }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill={color}><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>

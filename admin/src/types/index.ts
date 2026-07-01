@@ -158,3 +158,17 @@ export interface DashboardStats {
   // total_teachers not returned by backend — optional
   total_teachers?: number
 }
+
+export interface Suggestion {
+  id: number
+  user_id: number
+  title: string
+  description: string
+  status: 'new' | 'reviewing' | 'done' | 'rejected'
+  created_at: string
+  user_full_name: string
+  user_phone: string
+  user_email: string
+  learning_path_id: number | null
+  bac_branch_id: number | null
+}

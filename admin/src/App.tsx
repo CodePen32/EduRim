@@ -16,6 +16,7 @@ import { AnnouncementsPage } from './pages/AnnouncementsPage'
 import { SubscriptionPlansPage } from './pages/SubscriptionPlansPage'
 import { UserSubscriptionsPage } from './pages/UserSubscriptionsPage'
 import { SubscriptionRequestsPage } from './pages/SubscriptionRequestsPage'
+import { SuggestionsPage } from './pages/SuggestionsPage'
 
 export default function App() {
   return (
@@ -38,6 +39,7 @@ export default function App() {
             <Route path="/subscription-plans" element={<SubscriptionPlansPage />} />
             <Route path="/user-subscriptions" element={<UserSubscriptionsPage />} />
             <Route path="/subscription-requests" element={<SubscriptionRequestsPage />} />
+            <Route path="/suggestions" element={<SuggestionsPage />} />
           </Route>
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
