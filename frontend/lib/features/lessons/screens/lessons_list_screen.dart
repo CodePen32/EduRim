@@ -48,6 +48,7 @@ class _LessonsListScreenState extends State<LessonsListScreen> {
                   final l = lessons[i];
                   return _LessonCard(
                     lesson: l,
+                    index: i + 1,
                     onTap: () => Navigator.pushNamed(context, AppRoutes.lessonDetails, arguments: l),
                   );
                 },
@@ -59,35 +60,39 @@ class _LessonsListScreenState extends State<LessonsListScreen> {
 
 class _LessonCard extends StatelessWidget {
   final Lesson lesson;
+  final int index;
   final VoidCallback onTap;
 
-  const _LessonCard({required this.lesson, required this.onTap});
+  const _LessonCard({required this.lesson, required this.index, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final hasCover = lesson.coverImageUrl.isNotEmpty;
     final coverUrl = hasCover ? buildFileUrl(lesson.coverImageUrl) : '';
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 8, offset: const Offset(0, 3))],
-        ),
-        child: Row(
-          children: [
-            // ── Thumbnail ──
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(16),
-                bottomRight: Radius.circular(16),
-              ),
-              child: SizedBox(
-                width: 110,
-                height: 86,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.07),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // ── Cover كبير + Play وسط + Badge رقم ──
+          GestureDetector(
+            onTap: onTap,
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+              child: AspectRatio(
+                aspectRatio: 16 / 9,
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
@@ -99,69 +104,151 @@ class _LessonCard extends StatelessWidget {
                       )
                     else
                       _placeholderBox(),
-                    // overlay خفيف + أيقونة
-                    Container(
-                      color: Colors.black.withValues(alpha: 0.25),
-                      child: Center(
+                    // تعتيم خفيف لإبراز زر التشغيل
+                    Container(color: Colors.black.withValues(alpha: 0.18)),
+                    // زر Play دائري في الوسط
+                    Center(
+                      child: Container(
+                        width: 58,
+                        height: 58,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.92),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              blurRadius: 8,
+                            ),
+                          ],
+                        ),
                         child: Icon(
-                          lesson.isFree ? Icons.play_circle_filled : Icons.lock_rounded,
-                          color: Colors.white,
-                          size: 32,
+                          lesson.isFree ? Icons.play_arrow_rounded : Icons.lock_rounded,
+                          color: AppColors.primary,
+                          size: 34,
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            // ── Info ──
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      lesson.title,
-                      style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, fontSize: 13),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 5),
-                    Row(
-                      children: [
-                        const Icon(Icons.access_time, size: 13, color: AppColors.textLight),
-                        const SizedBox(width: 4),
-                        Text(lesson.durationLabel, style: const TextStyle(fontFamily: 'Cairo', fontSize: 11, color: AppColors.textLight)),
-                        const SizedBox(width: 8),
-                        if (lesson.isFree)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppColors.success.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text('مجاني', style: TextStyle(fontFamily: 'Cairo', fontSize: 10, color: AppColors.success, fontWeight: FontWeight.bold)),
+                    // Badge رقم الدرس في الزاوية
+                    PositionedDirectional(
+                      top: 10,
+                      start: 10,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '#$index',
+                          style: const TextStyle(
+                            fontFamily: 'Cairo',
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
                           ),
-                      ],
+                        ),
+                      ),
                     ),
+                    // شارة "مجاني" أعلى الجهة المقابلة
+                    if (lesson.isFree)
+                      PositionedDirectional(
+                        top: 10,
+                        end: 10,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.success,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            'مجاني',
+                            style: TextStyle(
+                              fontFamily: 'Cairo',
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.only(left: 10),
-              child: Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textLight),
+          ),
+          // ── العنوان أسفل الصورة ──
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
+            child: Text(
+              lesson.title,
+              style: const TextStyle(
+                fontFamily: 'Cairo',
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+                color: AppColors.textPrimary,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-          ],
-        ),
+          ),
+          if (lesson.durationLabel.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.access_time, size: 13, color: AppColors.textLight),
+                  const SizedBox(width: 4),
+                  Text(
+                    lesson.durationLabel,
+                    style: const TextStyle(
+                      fontFamily: 'Cairo',
+                      fontSize: 11,
+                      color: AppColors.textLight,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const Divider(height: 20, thickness: 1, color: AppColors.divider),
+          // ── زر "شاهد" + زر التنزيل ──
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: onTap,
+                    icon: const Icon(Icons.play_circle_outline, size: 20, color: AppColors.primary),
+                    label: const Text(
+                      'شاهد',
+                      style: TextStyle(
+                        fontFamily: 'Cairo',
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    style: TextButton.styleFrom(
+                      alignment: AlignmentDirectional.centerStart,
+                      padding: EdgeInsets.zero,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: onTap,
+                  tooltip: 'تنزيل',
+                  icon: const Icon(Icons.download_rounded, color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _placeholderBox() => Container(
         color: AppColors.primaryDark,
-        child: const Center(child: Icon(Icons.menu_book_outlined, color: Colors.white54, size: 30)),
+        child: const Center(child: Icon(Icons.menu_book_outlined, color: Colors.white54, size: 40)),
       );
 }
