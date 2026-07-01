@@ -24,6 +24,11 @@ import '../../features/progress/screens/progress_screen.dart';
 import '../../features/past_exams/screens/past_exams_screen.dart';
 import '../../features/subscription/screens/my_subscription_screen.dart';
 import '../../features/subscription/screens/request_subscription_screen.dart';
+import '../../features/info/screens/about_us_screen.dart';
+import '../../features/info/screens/terms_screen.dart';
+import '../../features/info/screens/faq_screen.dart';
+import '../../features/info/screens/contact_history_screen.dart';
+import '../../features/info/screens/suggest_feature_screen.dart';
 
 class AppRoutes {
   static const String login = '/login';
@@ -51,6 +56,11 @@ class AppRoutes {
   static const String subjects = '/subjects';
   static const String mySubscription = '/my-subscription';
   static const String requestSubscription = '/request-subscription';
+  static const String aboutUs = '/about-us';
+  static const String terms = '/terms';
+  static const String faq = '/faq';
+  static const String contactHistory = '/contact-history';
+  static const String suggestFeature = '/suggest-feature';
 
   static Map<String, WidgetBuilder> get routes => {
     login: (_) => const LoginScreen(),
@@ -78,5 +88,10 @@ class AppRoutes {
     subjects: (_) => const SubjectsScreen(),
     mySubscription: (_) => const MySubscriptionScreen(),
     requestSubscription: (_) => const RequestSubscriptionScreen(),
+    aboutUs: (_) => const AboutUsScreen(),
+    terms: (_) => const TermsScreen(),
+    faq: (_) => const FaqScreen(),
+    contactHistory: (_) => const ContactHistoryScreen(),
+    suggestFeature: (_) => const SuggestFeatureScreen(),
   };
 }

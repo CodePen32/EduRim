@@ -4,7 +4,6 @@ import '../../../core/models/user.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/utils/url_helper.dart';
-import '../../../shared/screens/placeholder_screen.dart';
 
 class HomeDrawer extends StatelessWidget {
   final UserModel? user;
@@ -17,67 +16,59 @@ class HomeDrawer extends StatelessWidget {
     final phone = user?.phone ?? '';
 
     return Drawer(
+      backgroundColor: AppColors.white,
       child: Column(
         children: [
-          // ── Header ──
+          // ── Header (gradient) ──
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(20, 48, 20, 24),
-            color: AppColors.primary,
+            padding: const EdgeInsets.fromLTRB(20, 52, 20, 22),
+            decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                const CircleAvatar(
-                  radius: 32,
-                  backgroundColor: Colors.white24,
-                  child: Icon(Icons.person, size: 36, color: AppColors.white),
+                Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 2),
+                  ),
+                  child: const CircleAvatar(
+                    radius: 32,
+                    backgroundColor: Colors.white24,
+                    child: Icon(Icons.person, size: 38, color: AppColors.white),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   name,
-                  style: const TextStyle(fontFamily: 'Cairo', fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.white),
+                  style: const TextStyle(fontFamily: 'Cairo', fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.white),
                   textAlign: TextAlign.right,
                 ),
                 if (phone.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(phone, style: const TextStyle(fontFamily: 'Cairo', fontSize: 13, color: Colors.white70)),
-                      const SizedBox(width: 6),
-                      const Icon(Icons.phone, size: 14, color: Colors.white70),
-                    ],
-                  ),
+                  const SizedBox(height: 6),
+                  _HeaderLine(icon: Icons.phone, text: phone),
                 ],
                 if (email.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Flexible(
-                        child: Text(email, style: const TextStyle(fontFamily: 'Cairo', fontSize: 12, color: Colors.white70), overflow: TextOverflow.ellipsis),
-                      ),
-                      const SizedBox(width: 6),
-                      const Icon(Icons.email_outlined, size: 14, color: Colors.white70),
-                    ],
-                  ),
+                  const SizedBox(height: 3),
+                  _HeaderLine(icon: Icons.email_outlined, text: email),
                 ],
               ],
             ),
           ),
 
-          // ── القائمة ──
+          // ── List (sectioned) ──
           Expanded(
             child: ListView(
-              padding: EdgeInsets.zero,
+              padding: const EdgeInsets.symmetric(vertical: 10),
               children: [
                 _DrawerItem(
-                  icon: Icons.home_outlined,
+                  icon: Icons.home_rounded,
                   label: 'الصفحة الرئيسية',
                   onTap: () => Navigator.pop(context),
                 ),
                 _DrawerItem(
-                  icon: Icons.menu_book_outlined,
+                  icon: Icons.menu_book_rounded,
                   label: 'المواد',
                   onTap: () {
                     Navigator.pop(context);
@@ -85,7 +76,7 @@ class HomeDrawer extends StatelessWidget {
                   },
                 ),
                 _DrawerItem(
-                  icon: Icons.credit_card_outlined,
+                  icon: Icons.credit_card_rounded,
                   label: 'اشتراكي',
                   onTap: () {
                     Navigator.pop(context);
@@ -93,55 +84,56 @@ class HomeDrawer extends StatelessWidget {
                   },
                 ),
                 _DrawerItem(
-                  icon: Icons.phone_outlined,
-                  label: 'تواصل معنا',
-                  onTap: () => _openWhatsApp(context),
-                ),
-                _DrawerItem(
-                  icon: Icons.contact_page_outlined,
-                  label: 'سجل التواصل',
-                  onTap: () => _openPlaceholder(context, 'سجل التواصل'),
-                ),
-                _DrawerItem(
-                  icon: Icons.notifications_outlined,
+                  icon: Icons.notifications_rounded,
                   label: 'الإشعارات',
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.pushNamed(context, AppRoutes.notifications);
                   },
                 ),
+
+                const _SectionLabel('الدعم والمساعدة'),
                 _DrawerItem(
-                  icon: Icons.help_outline,
+                  icon: Icons.chat_rounded,
+                  label: 'تواصل معنا',
+                  onTap: () => _openWhatsApp(context),
+                ),
+                _DrawerItem(
+                  icon: Icons.contact_page_rounded,
+                  label: 'سجل التواصل',
+                  onTap: () => _go(context, AppRoutes.contactHistory),
+                ),
+                _DrawerItem(
+                  icon: Icons.help_rounded,
                   label: 'الأسئلة الشائعة',
-                  onTap: () => _openPlaceholder(context, 'الأسئلة الشائعة'),
+                  onTap: () => _go(context, AppRoutes.faq),
                 ),
                 _DrawerItem(
-                  icon: Icons.lightbulb_outline,
+                  icon: Icons.lightbulb_rounded,
                   label: 'اقترح تطوير',
-                  onTap: () => _openPlaceholder(context, 'اقترح تطوير'),
+                  onTap: () => _go(context, AppRoutes.suggestFeature),
                 ),
+
+                const _SectionLabel('معلومات قانونية'),
                 _DrawerItem(
-                  icon: Icons.info_outline,
+                  icon: Icons.info_rounded,
                   label: 'من نحن',
-                  onTap: () => _openPlaceholder(context, 'من نحن'),
+                  onTap: () => _go(context, AppRoutes.aboutUs),
                 ),
                 _DrawerItem(
-                  icon: Icons.description_outlined,
+                  icon: Icons.description_rounded,
                   label: 'شروط الاستخدام',
-                  onTap: () => _openPlaceholder(context, 'شروط الاستخدام'),
+                  onTap: () => _go(context, AppRoutes.terms),
                 ),
-                const Divider(height: 1),
+
+                const SizedBox(height: 6),
+                const Divider(height: 1, indent: 16, endIndent: 16),
+                const SizedBox(height: 6),
                 _DrawerItem(
-                  icon: Icons.logout,
+                  icon: Icons.logout_rounded,
                   label: 'تسجيل الخروج',
                   color: AppColors.error,
-                  onTap: () async {
-                    Navigator.pop(context);
-                    await authService.clearToken();
-                    if (context.mounted) {
-                      Navigator.pushReplacementNamed(context, AppRoutes.login);
-                    }
-                  },
+                  onTap: () => _confirmLogout(context),
                 ),
               ],
             ),
@@ -151,17 +143,92 @@ class HomeDrawer extends StatelessWidget {
     );
   }
 
-  void _openPlaceholder(BuildContext context, String title) {
+  void _go(BuildContext context, String route) {
     Navigator.pop(context);
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => PlaceholderScreen(title: title)),
-    );
+    Navigator.pushNamed(context, route);
   }
 
   Future<void> _openWhatsApp(BuildContext context) async {
     Navigator.pop(context);
-    await openExternalUrl('https://wa.me/22232816779', context: context);
+    const msg = 'السلام عليكم، أريد التواصل مع دعم Concouri';
+    final url = 'https://wa.me/22249886974?text=${Uri.encodeComponent(msg)}';
+    await openExternalUrl(url, context: context);
+  }
+
+  Future<void> _confirmLogout(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('تسجيل الخروج', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
+          content: const Text('هل تريد تسجيل الخروج؟', style: TextStyle(fontFamily: 'Cairo')),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('إلغاء', style: TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('تسجيل الخروج', style: TextStyle(fontFamily: 'Cairo', color: AppColors.error, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (confirmed != true) return;
+    if (!context.mounted) return;
+    // Same logout logic as before — unchanged.
+    Navigator.pop(context); // close drawer
+    await authService.clearToken();
+    if (context.mounted) {
+      Navigator.pushReplacementNamed(context, AppRoutes.login);
+    }
+  }
+}
+
+class _HeaderLine extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  const _HeaderLine({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Flexible(
+          child: Text(
+            text,
+            style: const TextStyle(fontFamily: 'Cairo', fontSize: 12.5, color: Colors.white70),
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.right,
+          ),
+        ),
+        const SizedBox(width: 6),
+        Icon(icon, size: 14, color: Colors.white70),
+      ],
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  final String text;
+  const _SectionLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 6),
+      child: Align(
+        alignment: Alignment.centerRight,
+        child: Text(
+          text,
+          style: const TextStyle(fontFamily: 'Cairo', fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textLight, letterSpacing: 0.3),
+        ),
+      ),
+    );
   }
 }
 
@@ -176,11 +243,37 @@ class _DrawerItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = color ?? AppColors.textPrimary;
-    return ListTile(
-      leading: Icon(icon, color: c, size: 22),
-      title: Text(label, style: TextStyle(fontFamily: 'Cairo', fontSize: 14, color: c), textAlign: TextAlign.right),
-      onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+    final isDanger = color == AppColors.error;
+    final tint = isDanger ? AppColors.error : AppColors.primary;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(fontFamily: 'Cairo', fontSize: 14.5, color: c, fontWeight: FontWeight.w500),
+                  textAlign: TextAlign.right,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: tint.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Icon(icon, color: tint, size: 20),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
