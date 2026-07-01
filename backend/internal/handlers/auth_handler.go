@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"database/sql"
+	"log"
 	"net/http"
 	"strings"
 
@@ -31,6 +32,19 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	if database.DB == nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{"message": "قاعدة البيانات غير متصلة"})
 		return
+	}
+
+	// gender must match the DB enum exactly.
+	if req.Gender != "ذكر" && req.Gender != "أنثى" {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "الجنس غير صالح"})
+		return
+	}
+	// Treat 0 as "not selected" → NULL, so it doesn't violate the FK constraints.
+	if req.LearningPathID != nil && *req.LearningPathID == 0 {
+		req.LearningPathID = nil
+	}
+	if req.BacBranchID != nil && *req.BacBranchID == 0 {
+		req.BacBranchID = nil
 	}
 
 	// التحقق من عدم تكرار email أو phone
@@ -69,7 +83,17 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		req.Gender, req.City,
 	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "فشل إنشاء الحساب"})
+		// Log the real cause internally (never password/hash) for diagnosis.
+		log.Printf("register INSERT failed: %v", err)
+		msg := err.Error()
+		switch {
+		case strings.Contains(msg, "1452") || strings.Contains(msg, "foreign key constraint"):
+			c.JSON(http.StatusBadRequest, gin.H{"message": "المسار أو الشعبة غير صالحة"})
+		case strings.Contains(msg, "1265") || strings.Contains(msg, "Data truncated"):
+			c.JSON(http.StatusBadRequest, gin.H{"message": "قيمة غير صالحة في البيانات"})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "فشل إنشاء الحساب"})
+		}
 		return
 	}
 
