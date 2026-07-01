@@ -262,37 +262,41 @@ func (h *AuthHandler) UpdateProfile(c *gin.Context) {
 
 	var req struct {
 		FullName string `json:"full_name"`
-		Email    string `json:"email"`
-		Phone    string `json:"phone"`
 		City     string `json:"city"`
 		Gender   string `json:"gender"`
-		// LearningPathID and BacBranchID accepted only when user has no path yet
+		// Set only during onboarding (when the user has none yet); never
+		// changeable afterwards — enforced by COALESCE(existing, ?) below.
 		LearningPathID *uint `json:"learning_path_id"`
 		BacBranchID    *uint `json:"bac_branch_id"`
+		// NOTE: `phone` and `email` are intentionally NOT accepted here. They are
+		// set only at registration and are immutable from the app afterwards.
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "بيانات غير صحيحة"})
 		return
 	}
 
-	// السماح دائماً بتحديث learning_path_id و bac_branch_id
-	var lpArg, bacArg interface{}
-	lpArg = req.LearningPathID
-	bacArg = req.BacBranchID
+	// If gender is supplied it must match the DB enum exactly.
+	if req.Gender != "" && req.Gender != "ذكر" && req.Gender != "أنثى" {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "الجنس غير صالح"})
+		return
+	}
 
+	// Security: phone/email are never updated here. learning_path_id and
+	// bac_branch_id use COALESCE(existing, ?) so an incoming value only takes
+	// effect when the current value is NULL (first-time onboarding); once set,
+	// any change is silently ignored. Editable: full_name / city / gender only.
 	_, err := database.DB.Exec(
 		`UPDATE users SET
 		   full_name         = COALESCE(NULLIF(?, ''), full_name),
-		   email             = COALESCE(NULLIF(?, ''), email),
-		   phone             = COALESCE(NULLIF(?, ''), phone),
 		   city              = COALESCE(NULLIF(?, ''), city),
 		   gender            = COALESCE(NULLIF(?, ''), gender),
-		   learning_path_id  = COALESCE(?, learning_path_id),
-		   bac_branch_id     = COALESCE(?, bac_branch_id),
+		   learning_path_id  = COALESCE(learning_path_id, ?),
+		   bac_branch_id     = COALESCE(bac_branch_id, ?),
 		   updated_at        = NOW()
 		 WHERE id = ?`,
-		req.FullName, req.Email, req.Phone, req.City, req.Gender,
-		lpArg, bacArg,
+		req.FullName, req.City, req.Gender,
+		req.LearningPathID, req.BacBranchID,
 		userID,
 	)
 	if err != nil {
