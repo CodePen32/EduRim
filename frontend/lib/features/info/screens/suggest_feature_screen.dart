@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/network/api_client.dart';
+import '../../../core/routes/app_routes.dart';
+import '../../../core/services/auth_service.dart';
+import '../../../core/services/suggestion_service.dart';
 import '../widgets/info_widgets.dart';
 
 class SuggestFeatureScreen extends StatefulWidget {
@@ -13,6 +17,7 @@ class _SuggestFeatureScreenState extends State<SuggestFeatureScreen> {
   final _titleCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
   bool _sent = false;
+  bool _submitting = false;
 
   @override
   void dispose() {
@@ -21,19 +26,46 @@ class _SuggestFeatureScreenState extends State<SuggestFeatureScreen> {
     super.dispose();
   }
 
-  void _submit() {
-    if (_titleCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('يرجى كتابة عنوان الاقتراح', style: TextStyle(fontFamily: 'Cairo')),
-        behavior: SnackBarBehavior.floating,
-      ));
-      return;
-    }
-    // Local-only (no backend): acknowledge and reset.
-    setState(() => _sent = true);
-    _titleCtrl.clear();
-    _descCtrl.clear();
+  void _snack(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(msg, style: const TextStyle(fontFamily: 'Cairo')),
+      behavior: SnackBarBehavior.floating,
+    ));
+  }
+
+  Future<void> _submit() async {
+    final title = _titleCtrl.text.trim();
+    final desc = _descCtrl.text.trim();
+
+    // Local validation (mirrors backend rules).
+    if (title.length < 3) { _snack('العنوان يجب أن لا يقل عن 3 أحرف'); return; }
+    if (desc.length < 10) { _snack('الوصف يجب أن لا يقل عن 10 أحرف'); return; }
+
     FocusScope.of(context).unfocus();
+    setState(() => _submitting = true);
+    try {
+      await suggestionService.submit(title: title, description: desc);
+      if (!mounted) return;
+      setState(() { _sent = true; _submitting = false; });
+      _titleCtrl.clear();
+      _descCtrl.clear();
+      _snack('تم إرسال اقتراحك بنجاح');
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _submitting = false);
+      if (e.statusCode == 401) {
+        // Session expired / not logged in — follow the app's auth flow.
+        await authService.clearToken();
+        if (mounted) Navigator.pushReplacementNamed(context, AppRoutes.login);
+        return;
+      }
+      _snack(e.message.isNotEmpty ? e.message : 'تعذر إرسال الاقتراح');
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _submitting = false);
+      _snack('تعذر إرسال الاقتراح. تحقق من اتصالك وحاول مجدداً.');
+    }
   }
 
   @override
@@ -75,19 +107,23 @@ class _SuggestFeatureScreenState extends State<SuggestFeatureScreen> {
               const SizedBox(height: 8),
               _Field(controller: _titleCtrl, hint: 'مثال: إضافة وضع ليلي', maxLines: 1),
               const SizedBox(height: 16),
-              const InfoSectionTitle(icon: Icons.notes_rounded, title: 'الوصف (اختياري)'),
+              const InfoSectionTitle(icon: Icons.notes_rounded, title: 'الوصف'),
               const SizedBox(height: 8),
               _Field(controller: _descCtrl, hint: 'اشرح فكرتك بالتفصيل...', maxLines: 4),
               const SizedBox(height: 18),
               SizedBox(
                 height: 48,
                 child: ElevatedButton.icon(
-                  onPressed: _submit,
-                  icon: const Icon(Icons.send_rounded, size: 18),
-                  label: const Text('إرسال الاقتراح', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
+                  onPressed: _submitting ? null : _submit,
+                  icon: _submitting
+                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white))
+                      : const Icon(Icons.send_rounded, size: 18),
+                  label: Text(_submitting ? 'جارٍ الإرسال...' : 'إرسال الاقتراح', style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: AppColors.white,
+                    disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.6),
+                    disabledForegroundColor: AppColors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
