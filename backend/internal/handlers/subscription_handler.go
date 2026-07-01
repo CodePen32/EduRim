@@ -255,6 +255,23 @@ func (h *SubscriptionHandler) GetAdminRequests(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": list})
 }
 
+// GET /api/admin/subscription-requests/pending-count
+func (h *SubscriptionHandler) PendingRequestsCount(c *gin.Context) {
+	lpID, _ := strconv.Atoi(c.DefaultQuery("learning_path_id", "0"))
+	var bacBranchID *int
+	if bacStr := c.Query("bac_branch_id"); bacStr != "" {
+		if v, err := strconv.Atoi(bacStr); err == nil {
+			bacBranchID = &v
+		}
+	}
+	count, err := h.repo.CountPendingRequests(lpID, bacBranchID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "تعذر جلب العدد"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"count": count})
+}
+
 // PATCH /api/admin/subscription-requests/:id/approve
 func (h *SubscriptionHandler) ApproveRequest(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))

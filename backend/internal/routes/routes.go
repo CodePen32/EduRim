@@ -225,6 +225,7 @@ func Setup(r *gin.Engine, jwtSecret string, db *sql.DB, pushSvc *services.PushSe
 	admin.PUT("/subscription-plans/:id", subHandler.UpdatePlan)
 	admin.DELETE("/subscription-plans/:id", subHandler.DeletePlan)
 	admin.GET("/subscription-requests", subHandler.GetAdminRequests)
+	admin.GET("/subscription-requests/pending-count", subHandler.PendingRequestsCount)
 	admin.PATCH("/subscription-requests/:id/approve", subHandler.ApproveRequest)
 	admin.PATCH("/subscription-requests/:id/reject", subHandler.RejectRequest)
 	admin.GET("/user-subscriptions", subHandler.GetAdminUserSubscriptions)

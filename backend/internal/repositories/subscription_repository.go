@@ -417,6 +417,28 @@ func (r *SubscriptionRepository) GetAllRequests(status string, learningPathID in
 	return list, rows.Err()
 }
 
+// CountPendingRequests returns the number of pending subscription requests
+// for students in the given scope (same filter as GetAllRequests). Read-only.
+func (r *SubscriptionRepository) CountPendingRequests(learningPathID int, bacBranchID *int) (int, error) {
+	if r.db == nil {
+		return 0, ErrNoDB
+	}
+	query := `SELECT COUNT(*)
+		FROM subscription_requests sr
+		JOIN users u ON u.id = sr.user_id
+		WHERE sr.status = 'pending' AND u.learning_path_id = ?`
+	args := []interface{}{learningPathID}
+	if bacBranchID != nil {
+		query += " AND u.bac_branch_id = ?"
+		args = append(args, *bacBranchID)
+	} else {
+		query += " AND u.bac_branch_id IS NULL"
+	}
+	var count int
+	err := r.db.QueryRow(query, args...).Scan(&count)
+	return count, err
+}
+
 // ApproveRequest - admin approves, creates subscription automatically
 func (r *SubscriptionRepository) ApproveRequest(requestID uint, adminID uint, adminNote string) error {
 	if r.db == nil {

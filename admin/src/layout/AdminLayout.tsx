@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAdminScope } from '../context/AdminScopeContext'
 import { adminLogout } from '../auth/useAdminAuth'
+import { api } from '../lib/api'
 
 const SCOPE_COLOR: Record<string, string> = {
   'Concours': '#2563EB',
@@ -26,15 +27,26 @@ const NAV = [
 ]
 
 export function AdminLayout() {
-  const { scope, clearScope } = useAdminScope()
+  const { scope, clearScope, queryParams } = useAdminScope()
   const navigate = useNavigate()
   const location = useLocation()
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [pendingCount, setPendingCount] = useState(0)
   const drawerRef = useRef<HTMLDivElement>(null)
   const scopeColor = scope ? (SCOPE_COLOR[scope.label] ?? '#2563EB') : '#2563EB'
 
   // Close drawer on route change
   useEffect(() => { setDrawerOpen(false) }, [location.pathname])
+
+  // Pending subscription-requests count (best-effort; hide badge on failure).
+  useEffect(() => {
+    if (!scope) { setPendingCount(0); return }
+    let cancelled = false
+    api.get(`/admin/subscription-requests/pending-count?${queryParams}`)
+      .then((res) => { if (!cancelled) setPendingCount((res.data?.count as number) ?? 0) })
+      .catch(() => { if (!cancelled) setPendingCount(0) })
+    return () => { cancelled = true }
+  }, [queryParams, scope, location.pathname])
 
   // Close on outside click
   useEffect(() => {
@@ -118,7 +130,17 @@ export function AdminLayout() {
             {({ isActive }) => (
               <>
                 <Icon size={18} color={isActive ? '#fff' : '#94A3B8'} />
-                {label}
+                <span style={{ flex: 1 }}>{label}</span>
+                {to === '/subscription-requests' && pendingCount > 0 && (
+                  <span style={{
+                    minWidth: 18, height: 18, padding: '0 5px', borderRadius: 999,
+                    background: '#DC2626', color: '#fff', fontSize: 11, fontWeight: 700,
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    fontFamily: 'Cairo',
+                  }}>
+                    {pendingCount > 99 ? '99+' : pendingCount}
+                  </span>
+                )}
               </>
             )}
           </NavLink>
