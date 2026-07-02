@@ -11,6 +11,7 @@ import { ExercisesPage } from './pages/ExercisesPage'
 import { PastExamsPage } from './pages/PastExamsPage'
 import { TeachersPage } from './pages/TeachersPage'
 import { UsersPage } from './pages/UsersPage'
+import { LearningPathsPage } from './pages/LearningPathsPage'
 import { NotificationsPage } from './pages/NotificationsPage'
 import { AnnouncementsPage } from './pages/AnnouncementsPage'
 import { SubscriptionPlansPage } from './pages/SubscriptionPlansPage'
@@ -34,6 +35,7 @@ export default function App() {
             <Route path="/past-exams" element={<PastExamsPage />} />
             <Route path="/teachers" element={<TeachersPage />} />
             <Route path="/users" element={<UsersPage />} />
+            <Route path="/learning-paths" element={<LearningPathsPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/announcements" element={<AnnouncementsPage />} />
             <Route path="/subscription-plans" element={<SubscriptionPlansPage />} />
