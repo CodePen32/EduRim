@@ -82,11 +82,17 @@ class OfflineDownloadService {
       );
 
       await _box!.put(lesson.id, offline);
+      _lastDownloadHadMissingAttachments = result['missingAttachments'] == true;
       return offline;
     } catch (e) {
       rethrow;
     }
   }
+
+  /// هل تعذّر تنزيل بعض الملفات المرفقة (الغلاف/الملخص) في آخر عملية تنزيل؟
+  /// الفيديو نُزّل بنجاح رغم ذلك. للاستخدام في رسالة المستخدم فقط.
+  bool _lastDownloadHadMissingAttachments = false;
+  bool get lastDownloadHadMissingAttachments => _lastDownloadHadMissingAttachments;
 
   Future<void> deleteDownloadedLesson(int lessonId) async {
     if (kIsWeb || _box == null) return;

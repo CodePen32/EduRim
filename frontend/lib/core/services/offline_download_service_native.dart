@@ -20,17 +20,30 @@ Future<Map<String, dynamic>?> nativeDownloadLesson({
   String localCover = '';
   int totalBytes = 0;
 
-  try {
-    if (coverUrl.isNotEmpty) {
+  // الفيديو إلزامي: بدونه لا معنى للتنزيل بدون إنترنت.
+  if (videoUrl.isEmpty) {
+    try { await lessonDir.delete(recursive: true); } catch (_) {}
+    throw const OfflineDownloadException('لا يوجد فيديو متاح لهذا الدرس.');
+  }
+
+  // الغلاف اختياري: أي فشل (400/404/شبكة) يُتجاهل بهدوء دون إيقاف التنزيل.
+  if (coverUrl.isNotEmpty) {
+    try {
       onProgress?.call(0.05, 'تحميل الغلاف...');
       final ext = _ext(coverUrl, '.jpg');
       final dest = '${lessonDir.path}/cover$ext';
       await _download(coverUrl, dest);
       localCover = dest;
       totalBytes += await File(dest).length();
+    } catch (_) {
+      localCover = '';
+      try { await File('${lessonDir.path}/cover${_ext(coverUrl, '.jpg')}').delete(); } catch (_) {}
     }
+  }
 
-    if (summaryUrl.isNotEmpty) {
+  // الملخص اختياري: أي فشل يُتجاهل بهدوء دون إيقاف التنزيل.
+  if (summaryUrl.isNotEmpty) {
+    try {
       onProgress?.call(0.2, 'تحميل الملخص...');
       final ext = _ext(summaryUrl, '.pdf');
       final dest = '${lessonDir.path}/summary$ext';
@@ -39,31 +52,50 @@ Future<Map<String, dynamic>?> nativeDownloadLesson({
       });
       localSummary = dest;
       totalBytes += await File(dest).length();
+    } catch (_) {
+      localSummary = '';
+      try { await File('${lessonDir.path}/summary${_ext(summaryUrl, '.pdf')}').delete(); } catch (_) {}
     }
-
-    if (videoUrl.isNotEmpty) {
-      onProgress?.call(0.4, 'تحميل الفيديو...');
-      final ext = _ext(videoUrl, '.mp4');
-      final dest = '${lessonDir.path}/video$ext';
-      await _download(videoUrl, dest, onReceiveProgress: (recv, total) {
-        if (total > 0) onProgress?.call(0.4 + 0.58 * (recv / total), 'تحميل الفيديو...');
-      });
-      localVideo = dest;
-      totalBytes += await File(dest).length();
-    }
-
-    onProgress?.call(1.0, 'اكتمل التنزيل');
-
-    return {
-      'videoPath': localVideo,
-      'summaryPath': localSummary,
-      'coverPath': localCover,
-      'totalBytes': totalBytes,
-    };
-  } catch (e) {
-    try { await lessonDir.delete(recursive: true); } catch (_) {}
-    rethrow;
   }
+
+  // الفيديو إلزامي: فشله وحده يُفشل تنزيل الدرس.
+  try {
+    onProgress?.call(0.4, 'تحميل الفيديو...');
+    final ext = _ext(videoUrl, '.mp4');
+    final dest = '${lessonDir.path}/video$ext';
+    await _download(videoUrl, dest, onReceiveProgress: (recv, total) {
+      if (total > 0) onProgress?.call(0.4 + 0.58 * (recv / total), 'تحميل الفيديو...');
+    });
+    localVideo = dest;
+    totalBytes += await File(dest).length();
+  } catch (_) {
+    try { await lessonDir.delete(recursive: true); } catch (_) {}
+    throw const OfflineDownloadException(
+      'تعذر تنزيل الفيديو. تحقق من اتصال الإنترنت أو حاول لاحقاً.',
+    );
+  }
+
+  final missingAttachments =
+      (coverUrl.isNotEmpty && localCover.isEmpty) ||
+      (summaryUrl.isNotEmpty && localSummary.isEmpty);
+
+  onProgress?.call(1.0, 'اكتمل التنزيل');
+
+  return {
+    'videoPath': localVideo,
+    'summaryPath': localSummary,
+    'coverPath': localCover,
+    'totalBytes': totalBytes,
+    'missingAttachments': missingAttachments,
+  };
+}
+
+/// خطأ تنزيل برسالة عربية جاهزة للعرض (بدل DioException الخام).
+class OfflineDownloadException implements Exception {
+  final String message;
+  const OfflineDownloadException(this.message);
+  @override
+  String toString() => message;
 }
 
 Future<void> nativeDeleteLesson(int lessonId) async {
