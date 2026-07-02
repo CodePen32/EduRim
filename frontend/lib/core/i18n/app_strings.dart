@@ -28,6 +28,8 @@ class AppStrings {
     'drawer.about': {'ar': 'من نحن', 'fr': 'À propos'},
     'drawer.terms': {'ar': 'شروط الاستخدام', 'fr': "Conditions d'utilisation"},
     'drawer.language': {'ar': 'تغيير اللغة', 'fr': 'Changer la langue'},
+    'drawer.darkMode': {'ar': 'الوضع الداكن', 'fr': 'Mode sombre'},
+    'drawer.lightMode': {'ar': 'الوضع الفاتح', 'fr': 'Mode clair'},
     'drawer.logout': {'ar': 'تسجيل الخروج', 'fr': 'Déconnexion'},
     'logout.confirm': {'ar': 'هل تريد تسجيل الخروج؟', 'fr': 'Voulez-vous vous déconnecter ?'},
     'common.cancel': {'ar': 'إلغاء', 'fr': 'Annuler'},
@@ -249,6 +251,7 @@ class AppStrings {
     'subject.availableLessons': {'ar': 'الدروس المتاحة', 'fr': 'Cours disponibles'},
     'subject.reload': {'ar': 'إعادة التحميل', 'fr': 'Recharger'},
     'subject.examTopics': {'ar': 'مواضيع الامتحانات', 'fr': "Sujets d'examens"},
+    'subject.unitsPrefix': {'ar': 'الوحدات - ', 'fr': 'Unités - '},
 
     // ── About Us ──
     'about.title': {'ar': 'من نحن', 'fr': 'À propos'},
