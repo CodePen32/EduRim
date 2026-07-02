@@ -168,6 +168,8 @@ func Setup(r *gin.Engine, jwtSecret string, db *sql.DB, pushSvc *services.PushSe
 	adminContentRepo := repositories.NewAdminContentRepository(db)
 	adminContentHandler := handlers.NewAdminContentHandler(adminContentRepo, peRepo, notifRepo, pushSvc)
 	admin := api.Group("/admin", middleware.AdminAuth(jwtSecret))
+	admin.GET("/learning-paths", lpHandler.GetAdminLearningPaths)
+	admin.PATCH("/learning-paths/:id/enabled", lpHandler.SetLearningPathEnabled)
 	admin.GET("/dashboard/stats", adminContentHandler.GetStats)
 	admin.GET("/subjects", adminContentHandler.GetSubjects)
 	admin.POST("/subjects", adminContentHandler.CreateSubject)
