@@ -125,7 +125,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                   return Container(
                                     padding: const EdgeInsets.all(14),
                                     decoration: BoxDecoration(
-                                      color: AppColors.white,
+                                      color: AppColors.surface,
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(color: AppColors.cardBorder),
                                     ),

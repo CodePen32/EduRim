@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/i18n/app_strings.dart';
 import '../../../core/models/user.dart';
+import '../../../core/theme/theme_controller.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/utils/url_helper.dart';
@@ -17,7 +18,7 @@ class HomeDrawer extends StatelessWidget {
     final phone = user?.phone ?? '';
 
     return Drawer(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.surface,
       child: Column(
         children: [
           // ── Header (gradient) ──
@@ -96,6 +97,18 @@ class HomeDrawer extends StatelessWidget {
                   icon: Icons.language_rounded,
                   label: tr('drawer.language'),
                   onTap: () => _go(context, AppRoutes.language),
+                ),
+                // مبدّل الوضع الداكن/الفاتح — يبقى الدرج مفتوحاً ويحدّث فوراً.
+                ValueListenableBuilder<ThemeMode>(
+                  valueListenable: themeController.mode,
+                  builder: (context, mode, _) {
+                    final dark = mode == ThemeMode.dark;
+                    return _DrawerItem(
+                      icon: dark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                      label: dark ? tr('drawer.lightMode') : tr('drawer.darkMode'),
+                      onTap: () => themeController.toggle(),
+                    );
+                  },
                 ),
 
                 _SectionLabel(tr('drawer.support')),

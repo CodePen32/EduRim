@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'core/i18n/locale_controller.dart';
+import 'core/theme/theme_controller.dart';
 import 'core/network/api_client.dart';
 import 'core/services/auth_service.dart';
 import 'core/services/offline_download_service.dart';
@@ -18,8 +19,9 @@ void main() async {
   // تحميل token المحفوظ في apiClient قبل أي طلب
   await authService.loadSavedToken();
 
-  // استعادة اللغة المحفوظة (ar/fr) قبل تشغيل الواجهة
+  // استعادة اللغة المحفوظة (ar/fr) والسمة (فاتح/داكن) قبل تشغيل الواجهة
   await localeController.load();
+  await themeController.load();
 
   // تشغيل الواجهة دائماً أولاً — لا شيء من Firebase/FCM يجب أن يمنع الإقلاع
   runApp(const EdurImApp());

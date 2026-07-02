@@ -64,7 +64,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Directionality(
       textDirection: localeController.direction,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF5F7FB),
+        backgroundColor: AppColors.background,
         appBar: AppBar(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,

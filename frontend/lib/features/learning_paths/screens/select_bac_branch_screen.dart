@@ -87,7 +87,7 @@ class _SelectBacBranchScreenState extends State<SelectBacBranchScreen>
     return Directionality(
       textDirection: localeController.direction,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF5F7FB),
+        backgroundColor: AppColors.background,
         appBar: SelectionAppBar(title: tr('branch.appbar'), showBack: true),
         body: _checking
             ? const Center(child: CircularProgressIndicator())

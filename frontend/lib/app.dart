@@ -4,6 +4,7 @@ import 'core/i18n/locale_controller.dart';
 import 'core/routes/app_routes.dart';
 import 'core/services/auth_service.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_controller.dart';
 
 class EdurImApp extends StatelessWidget {
   const EdurImApp({super.key});
@@ -11,31 +12,39 @@ class EdurImApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // يعيد بناء MaterialApp عند تغيير اللغة، مع ضبط الاتجاه ديناميكياً.
+    // يعيد البناء عند تغيير اللغة أو السمة.
     return ValueListenableBuilder<Locale>(
       valueListenable: localeController.locale,
       builder: (context, locale, _) {
-        final isArabic = locale.languageCode == 'ar';
-        return MaterialApp(
-          title: 'Concouri',
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme,
-          locale: locale,
-          supportedLocales: const [Locale('ar'), Locale('fr')],
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          builder: (context, child) {
-            // ar = RTL، fr = LTR.
-            return Directionality(
-              textDirection:
-                  isArabic ? TextDirection.rtl : TextDirection.ltr,
-              child: child!,
+        return ValueListenableBuilder<ThemeMode>(
+          valueListenable: themeController.mode,
+          builder: (context, themeMode, _) {
+            final isArabic = locale.languageCode == 'ar';
+            return MaterialApp(
+              title: 'Concouri',
+              debugShowCheckedModeBanner: false,
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: themeMode,
+              locale: locale,
+              supportedLocales: const [Locale('ar'), Locale('fr')],
+              localizationsDelegates: const [
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              builder: (context, child) {
+                // ar = RTL، fr = LTR.
+                return Directionality(
+                  textDirection:
+                      isArabic ? TextDirection.rtl : TextDirection.ltr,
+                  child: child!,
+                );
+              },
+              home: const _Splash(),
+              routes: AppRoutes.routes,
             );
           },
-          home: const _Splash(),
-          routes: AppRoutes.routes,
         );
       },
     );

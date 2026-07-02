@@ -31,7 +31,7 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
         title: const Text('المواد', style: TextStyle(fontFamily: 'Cairo', fontSize: 16, fontWeight: FontWeight.bold)),
         elevation: 0,
       ),
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: AppColors.background,
       body: FutureBuilder<List<Subject>>(
         future: _future,
         builder: (context, snapshot) {

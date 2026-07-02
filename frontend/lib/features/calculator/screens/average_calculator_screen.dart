@@ -162,7 +162,7 @@ class _AverageCalculatorScreenState extends State<AverageCalculatorScreen> {
     return Directionality(
       textDirection: localeController.direction,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF5F7FB),
+        backgroundColor: AppColors.background,
         appBar: widget.standalone
             ? AppBar(
                 backgroundColor: AppColors.primary,

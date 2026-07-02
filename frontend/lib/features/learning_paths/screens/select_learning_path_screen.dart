@@ -95,7 +95,7 @@ class _SelectLearningPathScreenState extends State<SelectLearningPathScreen>
     return Directionality(
       textDirection: localeController.direction,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF5F7FB),
+        backgroundColor: AppColors.background,
         appBar: SelectionAppBar(title: tr('path.title')),
         body: _checking
             ? const Center(child: CircularProgressIndicator())

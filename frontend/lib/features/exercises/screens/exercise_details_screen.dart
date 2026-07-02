@@ -263,7 +263,7 @@ class _ResourceCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: enabled ? AppColors.cardBorder : AppColors.background),
         ),
