@@ -32,37 +32,64 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
         elevation: 0,
       ),
       backgroundColor: AppColors.background,
-      body: FutureBuilder<List<Subject>>(
+      body: RefreshIndicator(
+        onRefresh: () async {
+          setState(() => _future = subjectService.getMySubjects(forceRefresh: true));
+          await _future;
+        },
+        child: FutureBuilder<List<Subject>>(
         future: _future,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: const [
+                SizedBox(height: 200, child: Center(child: CircularProgressIndicator())),
+              ],
+            );
           }
           if (snapshot.hasError) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.error_outline, color: AppColors.error, size: 40),
-                  const SizedBox(height: 12),
-                  const Text('تعذر تحميل المواد', style: TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
-                  const SizedBox(height: 8),
-                  TextButton.icon(
-                    onPressed: () => setState(() => _future = subjectService.getMySubjects()),
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('إعادة المحاولة', style: TextStyle(fontFamily: 'Cairo')),
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(
+                  height: 300,
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.error_outline, color: AppColors.error, size: 40),
+                        const SizedBox(height: 12),
+                        const Text('تعذر تحميل المواد', style: TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
+                        const SizedBox(height: 8),
+                        TextButton.icon(
+                          onPressed: () => setState(() => _future = subjectService.getMySubjects(forceRefresh: true)),
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('إعادة المحاولة', style: TextStyle(fontFamily: 'Cairo')),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
+                ),
+              ],
             );
           }
           final subjects = snapshot.data ?? [];
           if (subjects.isEmpty) {
-            return const Center(
-              child: Text('لا توجد مواد متاحة لهذا المستوى', style: TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: const [
+                SizedBox(
+                  height: 200,
+                  child: Center(
+                    child: Text('لا توجد مواد متاحة لهذا المستوى', style: TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
+                  ),
+                ),
+              ],
             );
           }
           return GridView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(16),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
@@ -137,6 +164,7 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
             },
           );
         },
+        ),
       ),
     );
   }

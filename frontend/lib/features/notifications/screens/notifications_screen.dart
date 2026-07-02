@@ -50,36 +50,60 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         elevation: 0,
         title: Text(tr('notif.title'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 16, fontWeight: FontWeight.bold)),
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+      body: RefreshIndicator(
+        onRefresh: _load,
+        child: _loading
+          ? ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: const [
+                SizedBox(height: 200, child: Center(child: CircularProgressIndicator(color: AppColors.primary))),
+              ],
+            )
           : _error != null
-              ? Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.error_outline, color: AppColors.textLight, size: 48),
-                      const SizedBox(height: 12),
-                      Text(_error!, style: const TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
-                      const SizedBox(height: 8),
-                      TextButton(
-                        onPressed: _load,
-                        child: Text(tr('common.retry'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.primary)),
+              ? ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [
+                    SizedBox(
+                      height: 300,
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.error_outline, color: AppColors.textLight, size: 48),
+                            const SizedBox(height: 12),
+                            Text(_error!, style: const TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
+                            const SizedBox(height: 8),
+                            TextButton(
+                              onPressed: _load,
+                              child: Text(tr('common.retry'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.primary)),
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 )
               : _notifications.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.notifications_none_outlined, size: 56, color: AppColors.textLight),
-                          const SizedBox(height: 12),
-                          Text(tr('notif.empty'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 15, color: AppColors.textSecondary)),
-                        ],
-                      ),
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        SizedBox(
+                          height: 300,
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.notifications_none_outlined, size: 56, color: AppColors.textLight),
+                                const SizedBox(height: 12),
+                                Text(tr('notif.empty'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 15, color: AppColors.textSecondary)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     )
                   : ListView.separated(
+                      physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       itemCount: _notifications.length,
                       separatorBuilder: (_, _) => const SizedBox(height: 8),
@@ -163,6 +187,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         );
                       },
                     ),
+      ),
     );
   }
 }

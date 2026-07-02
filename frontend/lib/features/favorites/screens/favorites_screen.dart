@@ -52,10 +52,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     switch (fav.itemType) {
       case 'lesson':
         // Navigate to lesson details — we pass itemId as argument since we don't have full Lesson object here
-        Navigator.pushNamed(context, AppRoutes.lessonsList);
+        Navigator.pushNamed(context, AppRoutes.lessonsList).then((_) {
+          if (mounted) _load();
+        });
         break;
       case 'exercise':
-        Navigator.pushNamed(context, AppRoutes.exercisesList);
+        Navigator.pushNamed(context, AppRoutes.exercisesList).then((_) {
+          if (mounted) _load();
+        });
         break;
       default:
         break;
@@ -99,39 +103,63 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               child: Text(tr('fav.title'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 20, fontWeight: FontWeight.bold)),
             ),
           Expanded(
-            child: _loading
-                ? const Center(child: CircularProgressIndicator())
+            child: RefreshIndicator(
+              onRefresh: _load,
+              child: _loading
+                ? ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: const [
+                      SizedBox(height: 200, child: Center(child: CircularProgressIndicator())),
+                    ],
+                  )
                 : _error != null
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(_error!, style: const TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
-                            const SizedBox(height: 12),
-                            TextButton(
-                              onPressed: _load,
-                              child: Text(tr('common.retry'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.primary)),
+                    ? ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          SizedBox(
+                            height: 300,
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(_error!, style: const TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
+                                  const SizedBox(height: 12),
+                                  TextButton(
+                                    onPressed: _load,
+                                    child: Text(tr('common.retry'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.primary)),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       )
                     : _favorites.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.favorite_border, size: 64, color: AppColors.textLight),
-                                const SizedBox(height: 12),
-                                Text(tr('fav.empty'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
-                                const SizedBox(height: 8),
-                                TextButton(
-                                  onPressed: () => Navigator.pushNamed(context, AppRoutes.lessonsList),
-                                  child: Text(tr('fav.browseLessons'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.primary)),
+                        ? ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              SizedBox(
+                                height: 300,
+                                child: Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.favorite_border, size: 64, color: AppColors.textLight),
+                                      const SizedBox(height: 12),
+                                      Text(tr('fav.empty'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
+                                      const SizedBox(height: 8),
+                                      TextButton(
+                                        onPressed: () => Navigator.pushNamed(context, AppRoutes.lessonsList),
+                                        child: Text(tr('fav.browseLessons'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.primary)),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           )
                         : ListView.separated(
+                            physics: const AlwaysScrollableScrollPhysics(),
                             padding: const EdgeInsets.all(16),
                             itemCount: _favorites.length,
                             separatorBuilder: (_, _) => const SizedBox(height: 10),
@@ -197,6 +225,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                               );
                             },
                           ),
+            ),
           ),
         ],
       ),

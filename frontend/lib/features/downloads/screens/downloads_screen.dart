@@ -32,6 +32,10 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     if (mounted) setState(() { _lessons = list; _loading = false; });
   }
 
+  /// سحب-للتحديث: يعيد قراءة قائمة التنزيلات من التخزين المحلي (Hive) —
+  /// يلتقط أي تنزيل جديد اكتمل أثناء بقاء هذا التبويب حيّاً في IndexedStack.
+  Future<void> _onRefresh() async => _load();
+
   Future<void> _delete(OfflineLesson ol) async {
     try {
       await offlineDownloadService.deleteDownloadedLesson(ol.lessonId);
@@ -117,22 +121,38 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
               child: Text(tr('downloads.title'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 20, fontWeight: FontWeight.bold)),
             ),
           Expanded(
-            child: _loading
-                ? const Center(child: CircularProgressIndicator())
+            child: RefreshIndicator(
+              onRefresh: _onRefresh,
+              child: _loading
+                ? ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: const [
+                      SizedBox(height: 200, child: Center(child: CircularProgressIndicator())),
+                    ],
+                  )
                 : _lessons.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.download_outlined, size: 64, color: AppColors.textLight),
-                            const SizedBox(height: 12),
-                            Text(tr('downloads.emptyTitle'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
-                            const SizedBox(height: 4),
-                            Text(tr('downloads.emptyHint'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 12, color: AppColors.textLight)),
-                          ],
-                        ),
+                    ? ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          SizedBox(
+                            height: 300,
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.download_outlined, size: 64, color: AppColors.textLight),
+                                  const SizedBox(height: 12),
+                                  Text(tr('downloads.emptyTitle'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
+                                  const SizedBox(height: 4),
+                                  Text(tr('downloads.emptyHint'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 12, color: AppColors.textLight)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       )
                     : ListView.separated(
+                        physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.all(16),
                         itemCount: _lessons.length,
                         separatorBuilder: (_, _) => const SizedBox(height: 12),
@@ -144,6 +164,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                           onDelete: () => _delete(_lessons[i]),
                         ),
                       ),
+            ),
           ),
         ],
       ),

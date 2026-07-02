@@ -53,6 +53,20 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  /// عند الانتقال لتبويب المفضلة/التنزيلات، نعيد بناءها بمفتاح جديد
+  /// (initState يُعاد تشغيله فيعيد الجلب) — تعكس أي تغيير حدث في تبويب آخر
+  /// (تنزيل فيديو، إضافة/حذف مفضلة) دون الحاجة لإغلاق التطبيق.
+  void _onTabTap(int i) {
+    setState(() {
+      _currentIndex = i;
+      if (i == 1) {
+        _pages[1] = FavoritesScreen(key: UniqueKey(), standalone: false);
+      } else if (i == 2) {
+        _pages[2] = DownloadsScreen(key: UniqueKey(), standalone: false);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       bottomNavigationBar: BottomNavBar(
         currentIndex: _currentIndex,
-        onTap: (i) => setState(() => _currentIndex = i),
+        onTap: _onTabTap,
       ),
     );
   }
@@ -104,6 +118,20 @@ class _HomeContentState extends State<_HomeContent> {
         _subjectsFuture = subjectService.getMySubjects();
       });
 
+  /// سحب-للتحديث: يتجاوز كاش المواد (5 دقائق) ويعيد جلب كل شيء من الصفر.
+  Future<void> _onRefresh() async {
+    setState(() {
+      _subjectsFuture = subjectService.getMySubjects(forceRefresh: true);
+    });
+    await Future.wait([
+      _subjectsFuture,
+      _loadAnnouncements(),
+      authService.me().then((u) {
+        if (mounted) setState(() => _user = u);
+      }).catchError((_) {}),
+    ]);
+  }
+
   Color _hexToColor(String hex) {
     try {
       final h = hex.replaceAll('#', '');
@@ -119,7 +147,9 @@ class _HomeContentState extends State<_HomeContent> {
       backgroundColor: AppColors.background,
       appBar: const HomeTopBar(),
       endDrawer: HomeDrawer(user: _user),
-      body: CustomScrollView(
+      body: RefreshIndicator(
+        onRefresh: _onRefresh,
+        child: CustomScrollView(
         slivers: [
           // Carousel الإعلانات
           if (_announcements.isNotEmpty)
@@ -335,6 +365,7 @@ class _HomeContentState extends State<_HomeContent> {
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
+        ),
       ),
     );
   }

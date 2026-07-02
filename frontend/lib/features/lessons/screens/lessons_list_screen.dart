@@ -50,17 +50,45 @@ class _LessonsListScreenState extends State<LessonsListScreen> {
     _future = lessonService.getLessons(subjectId: _subjectId);
   });
 
+  /// سحب-للتحديث: يعيد جلب الدروس وحالة الاشتراك من الصفر.
+  Future<void> _onRefresh() async {
+    setState(() {
+      _future = lessonService.getLessons(subjectId: _subjectId);
+    });
+    await Future.wait([_future, _loadSubscription()]);
+  }
+
+  /// يفتح تفاصيل الدرس ويعيد تحميل القائمة عند العودة — يعكس أي تغيير
+  /// حدث هناك (مثل تفعيل اشتراك جديد أو اكتمال تنزيل).
+  void _openLesson(Lesson l) {
+    Navigator.pushNamed(context, AppRoutes.lessonDetails, arguments: l)
+        .then((_) {
+      if (mounted) _reload();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final title = _subjectId != null ? tr('lessons.subjectTitle') : tr('lessons.allTitle');
     return Scaffold(
       appBar: AppHeader(title: title),
-      body: ApiBuilder<List<Lesson>>(
+      body: RefreshIndicator(
+        onRefresh: _onRefresh,
+        child: ApiBuilder<List<Lesson>>(
         future: _future,
         onRetry: _reload,
         builder: (lessons) => lessons.isEmpty
-            ? Center(child: Text(tr('lessons.none'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)))
+            ? ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  SizedBox(
+                    height: 200,
+                    child: Center(child: Text(tr('lessons.none'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary))),
+                  ),
+                ],
+              )
             : ListView.builder(
+                physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(16),
                 itemCount: lessons.length,
                 itemBuilder: (context, i) {
@@ -69,10 +97,11 @@ class _LessonsListScreenState extends State<LessonsListScreen> {
                     lesson: l,
                     index: i + 1,
                     userSubscribed: _userSubscribed,
-                    onTap: () => Navigator.pushNamed(context, AppRoutes.lessonDetails, arguments: l),
+                    onTap: () => _openLesson(l),
                   );
                 },
               ),
+        ),
       ),
     );
   }
