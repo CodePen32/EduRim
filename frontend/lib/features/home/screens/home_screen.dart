@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/i18n/app_strings.dart';
 import '../../../core/models/announcement.dart';
 import '../../../core/models/subject.dart';
 import '../../../core/models/user.dart';
@@ -146,17 +147,17 @@ class _HomeContentState extends State<_HomeContent> {
                           )
                         ],
                       ),
-                      child: const AbsorbPointer(
+                      child: AbsorbPointer(
                         child: TextField(
                           decoration: InputDecoration(
-                            hintText: 'ابحث عن درس أو مادة...',
-                            hintStyle: TextStyle(
+                            hintText: tr('home.searchHint'),
+                            hintStyle: const TextStyle(
                               fontFamily: 'Cairo',
                               color: AppColors.textLight,
                             ),
-                            prefixIcon: Icon(Icons.search, color: AppColors.textLight),
+                            prefixIcon: const Icon(Icons.search, color: AppColors.textLight),
                             border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(
+                            contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16,
                               vertical: 14,
                             ),
@@ -170,27 +171,27 @@ class _HomeContentState extends State<_HomeContent> {
                     children: [
                       _QuickAction(
                         icon: Icons.play_circle_outline_rounded,
-                        label: 'الدروس',
+                        label: tr('home.lessons'),
                         onTap: () => Navigator.pushNamed(context, AppRoutes.lessonsList),
                       ),
                       const SizedBox(width: 12),
                       _QuickAction(
                         icon: Icons.assignment_outlined,
-                        label: 'التمارين',
+                        label: tr('home.exercises'),
                         onTap: () => Navigator.pushNamed(context, AppRoutes.exercisesList),
                       ),
                       const SizedBox(width: 12),
                       _QuickAction(
                         icon: Icons.groups_2_outlined,
-                        label: 'الأساتذة',
+                        label: tr('home.teachers'),
                         onTap: () => Navigator.pushNamed(context, AppRoutes.teachers),
                       ),
                     ],
                   ),
                   const SizedBox(height: 28),
-                  const Text(
-                    'مواد مسارك الدراسي',
-                    style: TextStyle(
+                  Text(
+                    tr('home.mySubjects'),
+                    style: const TextStyle(
                       fontFamily: 'Cairo',
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -240,8 +241,8 @@ class _HomeContentState extends State<_HomeContent> {
                             const SizedBox(height: 8),
                             Text(
                               isConnection
-                                  ? 'تعذر الاتصال بالخادم'
-                                  : 'تعذّر تحميل المواد',
+                                  ? tr('home.connError')
+                                  : tr('home.loadError'),
                               style: const TextStyle(
                                 fontFamily: 'Cairo',
                                 color: AppColors.textSecondary,
@@ -250,8 +251,8 @@ class _HomeContentState extends State<_HomeContent> {
                             TextButton.icon(
                               onPressed: _reloadSubjects,
                               icon: const Icon(Icons.refresh, size: 16),
-                              label: const Text('إعادة المحاولة',
-                                  style: TextStyle(fontFamily: 'Cairo')),
+                              label: Text(tr('common.retry'),
+                                  style: const TextStyle(fontFamily: 'Cairo')),
                             ),
                           ],
                         ),
@@ -286,14 +287,14 @@ class _HomeContentState extends State<_HomeContent> {
                     });
                     return const SliverToBoxAdapter(child: SizedBox.shrink());
                   }
-                  return const SliverToBoxAdapter(
+                  return SliverToBoxAdapter(
                     child: Center(
                       child: Padding(
-                        padding: EdgeInsets.all(32),
+                        padding: const EdgeInsets.all(32),
                         child: Text(
-                          'لا توجد مواد متاحة لهذا المستوى حاليا',
+                          tr('home.noSubjects'),
                           textAlign: TextAlign.center,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontFamily: 'Cairo',
                             color: AppColors.textSecondary,
                             height: 1.6,

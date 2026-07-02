@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/i18n/app_strings.dart';
 import '../../../core/models/search_result.dart';
 import '../../../core/services/search_service.dart';
 import '../../../shared/widgets/app_header.dart';
@@ -31,7 +32,7 @@ class _SearchScreenState extends State<SearchScreen> {
       final results = await searchService.search(q.trim());
       if (mounted) setState(() { _results = results; _loading = false; });
     } catch (_) {
-      if (mounted) setState(() { _error = 'تعذر إجراء البحث'; _loading = false; });
+      if (mounted) setState(() { _error = tr('search.error'); _loading = false; });
     }
   }
 
@@ -47,10 +48,10 @@ class _SearchScreenState extends State<SearchScreen> {
 
   String _typeLabel(String type) {
     switch (type) {
-      case 'subject': return 'مادة';
-      case 'lesson': return 'درس';
-      case 'exercise': return 'تمرين';
-      case 'teacher': return 'أستاذ';
+      case 'subject': return tr('search.subject');
+      case 'lesson': return tr('search.lesson');
+      case 'exercise': return tr('search.exercise');
+      case 'teacher': return tr('search.teacher');
       default: return type;
     }
   }
@@ -68,7 +69,7 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AppHeader(title: 'البحث'),
+      appBar: AppHeader(title: tr('search.title')),
       body: Column(
         children: [
           Padding(
@@ -80,7 +81,7 @@ class _SearchScreenState extends State<SearchScreen> {
               onSubmitted: _search,
               style: const TextStyle(fontFamily: 'Cairo'),
               decoration: InputDecoration(
-                hintText: 'ابحث عن درس، مادة، أستاذ...',
+                hintText: tr('search.hint'),
                 hintStyle: const TextStyle(fontFamily: 'Cairo'),
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _controller.text.isNotEmpty
@@ -108,12 +109,12 @@ class _SearchScreenState extends State<SearchScreen> {
                               children: [
                                 Icon(Icons.search, size: 64, color: AppColors.textLight),
                                 const SizedBox(height: 12),
-                                const Text('ابدأ البحث للعثور على المحتوى', style: TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
+                                Text(tr('search.start'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
                               ],
                             ),
                           )
                         : _results.isEmpty
-                            ? const Center(child: Text('لا توجد نتائج', style: TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)))
+                            ? Center(child: Text(tr('search.noResults'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)))
                             : ListView.separated(
                                 padding: const EdgeInsets.symmetric(horizontal: 16),
                                 itemCount: _results.length,

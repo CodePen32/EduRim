@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/i18n/app_strings.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/auth_service.dart';
@@ -39,8 +40,8 @@ class _SuggestFeatureScreenState extends State<SuggestFeatureScreen> {
     final desc = _descCtrl.text.trim();
 
     // Local validation (mirrors backend rules).
-    if (title.length < 3) { _snack('العنوان يجب أن لا يقل عن 3 أحرف'); return; }
-    if (desc.length < 10) { _snack('الوصف يجب أن لا يقل عن 10 أحرف'); return; }
+    if (title.length < 3) { _snack(tr('suggest.titleMin')); return; }
+    if (desc.length < 10) { _snack(tr('suggest.descMin')); return; }
 
     FocusScope.of(context).unfocus();
     setState(() => _submitting = true);
@@ -50,7 +51,7 @@ class _SuggestFeatureScreenState extends State<SuggestFeatureScreen> {
       setState(() { _sent = true; _submitting = false; });
       _titleCtrl.clear();
       _descCtrl.clear();
-      _snack('تم إرسال اقتراحك بنجاح');
+      _snack(tr('suggest.sent'));
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() => _submitting = false);
@@ -60,20 +61,20 @@ class _SuggestFeatureScreenState extends State<SuggestFeatureScreen> {
         if (mounted) Navigator.pushReplacementNamed(context, AppRoutes.login);
         return;
       }
-      _snack(e.message.isNotEmpty ? e.message : 'تعذر إرسال الاقتراح');
+      _snack(e.message.isNotEmpty ? e.message : tr('suggest.sendFailed'));
     } catch (_) {
       if (!mounted) return;
       setState(() => _submitting = false);
-      _snack('تعذر إرسال الاقتراح. تحقق من اتصالك وحاول مجدداً.');
+      _snack(tr('suggest.sendFailedConn'));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return InfoScaffold(
-      appBarTitle: 'اقترح تطوير',
+      appBarTitle: tr('suggest.title'),
       children: [
-        const InfoHero(icon: Icons.lightbulb_rounded, title: 'اقترح تطوير', subtitle: 'رأيك يساعدنا على تحسين المنصة'),
+        InfoHero(icon: Icons.lightbulb_rounded, title: tr('suggest.title'), subtitle: tr('suggest.heroSubtitle')),
         const SizedBox(height: 18),
         if (_sent)
           InfoCard(
@@ -81,11 +82,11 @@ class _SuggestFeatureScreenState extends State<SuggestFeatureScreen> {
               children: [
                 Expanded(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: const [
-                      Text('تم استلام اقتراحك', style: TextStyle(fontFamily: 'Cairo', fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.success)),
-                      SizedBox(height: 4),
-                      Text('شكراً لك! سنأخذ اقتراحك بعين الاعتبار.', style: TextStyle(fontFamily: 'Cairo', fontSize: 13, color: AppColors.textSecondary), textAlign: TextAlign.right),
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(tr('suggest.receivedTitle'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.success)),
+                      const SizedBox(height: 4),
+                      Text(tr('suggest.receivedBody'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 13, color: AppColors.textSecondary), textAlign: TextAlign.start),
                     ],
                   ),
                 ),
@@ -103,13 +104,13 @@ class _SuggestFeatureScreenState extends State<SuggestFeatureScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const InfoSectionTitle(icon: Icons.title_rounded, title: 'عنوان الاقتراح'),
+              InfoSectionTitle(icon: Icons.title_rounded, title: tr('suggest.fieldTitle')),
               const SizedBox(height: 8),
-              _Field(controller: _titleCtrl, hint: 'مثال: إضافة وضع ليلي', maxLines: 1),
+              _Field(controller: _titleCtrl, hint: tr('suggest.titleHint'), maxLines: 1),
               const SizedBox(height: 16),
-              const InfoSectionTitle(icon: Icons.notes_rounded, title: 'الوصف'),
+              InfoSectionTitle(icon: Icons.notes_rounded, title: tr('suggest.fieldDesc')),
               const SizedBox(height: 8),
-              _Field(controller: _descCtrl, hint: 'اشرح فكرتك بالتفصيل...', maxLines: 4),
+              _Field(controller: _descCtrl, hint: tr('suggest.descHint'), maxLines: 4),
               const SizedBox(height: 18),
               SizedBox(
                 height: 48,
@@ -118,7 +119,7 @@ class _SuggestFeatureScreenState extends State<SuggestFeatureScreen> {
                   icon: _submitting
                       ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white))
                       : const Icon(Icons.send_rounded, size: 18),
-                  label: Text(_submitting ? 'جارٍ الإرسال...' : 'إرسال الاقتراح', style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
+                  label: Text(_submitting ? tr('suggest.sending') : tr('suggest.submit'), style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: AppColors.white,
@@ -146,7 +147,7 @@ class _Field extends StatelessWidget {
     return TextField(
       controller: controller,
       maxLines: maxLines,
-      textAlign: TextAlign.right,
+      textAlign: TextAlign.start,
       style: const TextStyle(fontFamily: 'Cairo', fontSize: 14),
       decoration: InputDecoration(
         hintText: hint,

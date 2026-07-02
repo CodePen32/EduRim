@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/i18n/app_strings.dart';
 import '../../../core/models/user.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/services/auth_service.dart';
@@ -48,7 +49,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   String _buildLevelLabel(UserModel user) {
     final lpId = user.learningPathId;
-    if (lpId == null) return 'غير محدد';
+    if (lpId == null) return tr('edit.notSet');
     switch (lpId) {
       case 1: return 'Concours';
       case 2: return 'BEPC';
@@ -57,7 +58,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         if (bacId == 1) return 'Bac C';
         if (bacId == 2) return 'Bac D';
         return 'Bac';
-      default: return 'غير معروف';
+      default: return tr('edit.unknown');
     }
   }
 
@@ -72,8 +73,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         'city': _cityController.text.trim(),
       });
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('تم حفظ التغييرات بنجاح', style: TextStyle(fontFamily: 'Cairo')),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(tr('edit.saved'), style: const TextStyle(fontFamily: 'Cairo')),
         backgroundColor: AppColors.success,
         behavior: SnackBarBehavior.floating,
       ));
@@ -88,8 +89,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('تعذر حفظ التغييرات', style: TextStyle(fontFamily: 'Cairo')),
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(tr('edit.saveFailed'), style: const TextStyle(fontFamily: 'Cairo')),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
         ));
@@ -111,7 +112,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AppHeader(title: 'تعديل الملف الشخصي'),
+      appBar: AppHeader(title: tr('profile.edit')),
       body: _loadingUser
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -134,27 +135,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   const SizedBox(height: 30),
                   TextFormField(
                     controller: _nameController,
-                    decoration: const InputDecoration(labelText: 'الاسم الكامل', prefixIcon: Icon(Icons.person_outline)),
+                    decoration: InputDecoration(labelText: tr('edit.fullName'), prefixIcon: const Icon(Icons.person_outline)),
                   ),
                   const SizedBox(height: 14),
                   TextFormField(
                     controller: _emailController,
                     textDirection: TextDirection.ltr,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(labelText: 'البريد الإلكتروني', prefixIcon: Icon(Icons.email_outlined)),
+                    decoration: InputDecoration(labelText: tr('edit.email'), prefixIcon: const Icon(Icons.email_outlined)),
                   ),
                   const SizedBox(height: 14),
                   TextFormField(
                     controller: _cityController,
-                    decoration: const InputDecoration(labelText: 'المدينة', prefixIcon: Icon(Icons.location_city_outlined)),
+                    decoration: InputDecoration(labelText: tr('edit.city'), prefixIcon: const Icon(Icons.location_city_outlined)),
                   ),
                   const SizedBox(height: 24),
 
                   // رقم الهاتف — للعرض فقط، ثابت بعد التسجيل ولا يمكن تعديله
                   _ReadOnlyField(
                     icon: Icons.phone_outlined,
-                    label: 'رقم الهاتف',
-                    value: _phoneController.text.isEmpty ? 'غير محدد' : _phoneController.text,
+                    label: tr('edit.phone'),
+                    value: _phoneController.text.isEmpty ? tr('edit.notSet') : _phoneController.text,
                     ltrValue: true,
                   ),
                   const SizedBox(height: 12),
@@ -162,11 +163,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   // المستوى الدراسي — للعرض فقط، لا يمكن تعديله
                   _ReadOnlyField(
                     icon: Icons.school_outlined,
-                    label: 'المستوى الدراسي',
+                    label: tr('edit.level'),
                     value: _levelLabel,
                   ),
                   const SizedBox(height: 32),
-                  PrimaryButton(label: 'حفظ التغييرات', isLoading: _isLoading, onPressed: _save),
+                  PrimaryButton(label: tr('edit.save'), isLoading: _isLoading, onPressed: _save),
                 ],
               ),
             ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/i18n/app_strings.dart';
 import '../../../core/models/teacher.dart';
 import '../../../core/services/teacher_service.dart';
 import '../../../core/utils/url_helper.dart';
@@ -39,12 +40,12 @@ class _TeachersScreenState extends State<TeachersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AppHeader(title: 'الأساتذة'),
+      appBar: AppHeader(title: tr('teachers.title')),
       body: ApiBuilder<List<Teacher>>(
         future: _future,
         onRetry: _reload,
         builder: (teachers) => teachers.isEmpty
-            ? const Center(child: Text('لا يوجد أساتذة لهذه المادة', style: TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)))
+            ? Center(child: Text(tr('teachers.none'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)))
             : ListView.separated(
                 padding: const EdgeInsets.all(20),
                 itemCount: teachers.length,

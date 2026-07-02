@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/i18n/app_strings.dart';
 import '../../../core/utils/url_helper.dart';
 
 class PdfViewerScreen extends StatefulWidget {
@@ -27,12 +28,12 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
       _argsLoaded = true;
       final args = ModalRoute.of(context)?.settings.arguments;
       if (args is Map<String, dynamic>) {
-        _title = args['title'] as String? ?? 'الملخص';
+        _title = args['title'] as String? ?? tr('pdf.title');
         final rawUrl = args['pdfUrl'] as String? ?? '';
         _pdfUrl = rawUrl.isNotEmpty ? buildFileUrl(rawUrl) : null;
       } else if (args is String) {
         _pdfUrl = buildFileUrl(args);
-        _title = 'الملخص';
+        _title = tr('pdf.title');
       }
       debugPrint('=== PdfViewerScreen ===');
       debugPrint('pdfUrl: $_pdfUrl');
@@ -42,7 +43,7 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
 
   Future<void> _loadPdf() async {
     if (_pdfUrl == null || _pdfUrl!.isEmpty) {
-      if (mounted) setState(() { _loading = false; _error = 'الملخص غير متاح حالياً'; });
+      if (mounted) setState(() { _loading = false; _error = tr('pdf.unavailable'); });
       return;
     }
 
@@ -56,18 +57,18 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
       if (!mounted) return;
 
       if (response.statusCode != 200) {
-        setState(() { _loading = false; _error = 'تعذر تحميل الملخص (رمز: ${response.statusCode})'; });
+        setState(() { _loading = false; _error = AppStrings.withArg('pdf.loadErrorCode', '${response.statusCode}'); });
         return;
       }
       if (response.bodyBytes.isEmpty) {
-        setState(() { _loading = false; _error = 'ملف PDF فارغ أو غير صالح'; });
+        setState(() { _loading = false; _error = tr('pdf.empty'); });
         return;
       }
 
       setState(() { _loading = false; _bytes = response.bodyBytes; });
     } catch (e) {
       debugPrint('PDF fetch error: $e');
-      if (mounted) setState(() { _loading = false; _error = 'تعذر جلب الملخص: $e'; });
+      if (mounted) setState(() { _loading = false; _error = AppStrings.withArg('pdf.fetchError', '$e'); });
     }
   }
 
@@ -75,14 +76,14 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_title ?? 'الملخص', style: const TextStyle(fontFamily: 'Cairo', fontSize: 15), maxLines: 1, overflow: TextOverflow.ellipsis),
+        title: Text(_title ?? tr('pdf.title'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 15), maxLines: 1, overflow: TextOverflow.ellipsis),
         backgroundColor: AppColors.primaryDark,
         foregroundColor: AppColors.white,
         actions: [
           if (_pdfUrl != null && _pdfUrl!.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.open_in_new),
-              tooltip: 'فتح في المتصفح',
+              tooltip: tr('pdf.openBrowser'),
               onPressed: () => openExternalUrl(_pdfUrl, context: context),
             ),
         ],
@@ -93,13 +94,13 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
 
   Widget _buildBody() {
     if (_loading) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('جاري تحميل الملخص...', style: TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
+            const CircularProgressIndicator(),
+            const SizedBox(height: 16),
+            Text(tr('pdf.loading'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
           ],
         ),
       );
@@ -118,7 +119,7 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
             const Icon(Icons.error_outline, size: 48, color: AppColors.error),
             const SizedBox(height: 12),
             Text(
-              _error ?? 'الملخص غير متاح حالياً',
+              _error ?? tr('pdf.unavailable'),
               style: const TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary),
               textAlign: TextAlign.center,
             ),
@@ -127,14 +128,14 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
               ElevatedButton.icon(
                 onPressed: _loadPdf,
                 icon: const Icon(Icons.refresh),
-                label: const Text('إعادة المحاولة', style: TextStyle(fontFamily: 'Cairo')),
+                label: Text(tr('common.retry'), style: const TextStyle(fontFamily: 'Cairo')),
                 style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: AppColors.white),
               ),
               const SizedBox(height: 12),
               OutlinedButton.icon(
                 onPressed: () => openExternalUrl(_pdfUrl, context: context),
                 icon: const Icon(Icons.open_in_new),
-                label: const Text('فتح في المتصفح', style: TextStyle(fontFamily: 'Cairo')),
+                label: Text(tr('pdf.openBrowser'), style: const TextStyle(fontFamily: 'Cairo')),
               ),
             ],
           ],

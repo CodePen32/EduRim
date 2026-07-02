@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/i18n/app_strings.dart';
 import '../widgets/info_widgets.dart';
 
 class TermsScreen extends StatelessWidget {
@@ -7,23 +8,23 @@ class TermsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InfoScaffold(
-      appBarTitle: 'شروط الاستخدام',
-      children: const [
-        InfoHero(icon: Icons.description_rounded, title: 'شروط الاستخدام', subtitle: 'يرجى قراءتها قبل استخدام التطبيق'),
-        SizedBox(height: 18),
+      appBarTitle: tr('terms.title'),
+      children: [
+        InfoHero(icon: Icons.description_rounded, title: tr('terms.title'), subtitle: tr('terms.heroSubtitle')),
+        const SizedBox(height: 18),
         InfoCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _Term('1. الاستخدام الشخصي', 'يُستخدم التطبيق لأغراض تعليمية شخصية فقط. لا يجوز إعادة بيع أو توزيع المحتوى دون إذن.'),
-              Divider(height: 22),
-              _Term('2. الحساب', 'أنت مسؤول عن سرية بيانات حسابك. رقم الهاتف والبريد يُحدّدان عند التسجيل ولا يمكن تغييرهما لاحقاً من التطبيق.'),
-              Divider(height: 22),
-              _Term('3. المحتوى', 'كل الدروس والتمارين والمواضيع مملوكة للمنصة أو لأصحابها. يُمنع نسخها أو نشرها خارج التطبيق.'),
-              Divider(height: 22),
-              _Term('4. الاشتراك', 'بعض المحتوى مجاني وبعضه يتطلب اشتراكاً. الاشتراك شخصي وغير قابل للمشاركة.'),
-              Divider(height: 22),
-              _Term('5. التعديلات', 'قد تُحدَّث هذه الشروط من وقت لآخر، ويُعدّ استمرارك في استخدام التطبيق موافقةً على التعديلات.'),
+              _Term(tr('terms.t1title'), tr('terms.t1body')),
+              const Divider(height: 22),
+              _Term(tr('terms.t2title'), tr('terms.t2body')),
+              const Divider(height: 22),
+              _Term(tr('terms.t3title'), tr('terms.t3body')),
+              const Divider(height: 22),
+              _Term(tr('terms.t4title'), tr('terms.t4body')),
+              const Divider(height: 22),
+              _Term(tr('terms.t5title'), tr('terms.t5body')),
             ],
           ),
         ),
@@ -41,7 +42,7 @@ class _Term extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(title, style: const TextStyle(fontFamily: 'Cairo', fontSize: 14.5, fontWeight: FontWeight.bold), textAlign: TextAlign.right),
+        Text(title, style: const TextStyle(fontFamily: 'Cairo', fontSize: 14.5, fontWeight: FontWeight.bold), textAlign: TextAlign.start),
         const SizedBox(height: 6),
         InfoPara(body),
       ],

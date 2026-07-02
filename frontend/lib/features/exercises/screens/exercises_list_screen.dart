@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/i18n/app_strings.dart';
 import '../../../core/models/exercise.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/exercise_service.dart';
@@ -43,14 +44,14 @@ class _ExercisesListScreenState extends State<ExercisesListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final title = _subjectId != null ? 'تمارين المادة' : 'التمارين والاختبارات';
+    final title = _subjectId != null ? tr('exercises.subjectTitle') : tr('exercises.allTitle');
     return Scaffold(
       appBar: AppHeader(title: title),
       body: ApiBuilder<List<Exercise>>(
         future: _future,
         onRetry: _reload,
         builder: (exercises) => exercises.isEmpty
-            ? const Center(child: Text('لا توجد تمارين حالياً', style: TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)))
+            ? Center(child: Text(tr('exercises.none'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)))
             : ListView.separated(
                 padding: const EdgeInsets.all(16),
                 itemCount: exercises.length,
@@ -83,14 +84,14 @@ class _ExercisesListScreenState extends State<ExercisesListScreen> {
                                 Text(e.title, style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, fontSize: 14)),
                                 const SizedBox(height: 4),
                                 if (e.year > 0)
-                                  Text('سنة ${e.year}', style: const TextStyle(fontFamily: 'Cairo', fontSize: 12, color: AppColors.textSecondary)),
+                                  Text(AppStrings.withArg('exercises.year', '${e.year}'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 12, color: AppColors.textSecondary)),
                               ],
                             ),
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(color: diffColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                            child: Text(e.difficulty, style: TextStyle(fontFamily: 'Cairo', fontSize: 12, color: diffColor, fontWeight: FontWeight.bold)),
+                            child: Text(AppStrings.difficulty(e.difficulty), style: TextStyle(fontFamily: 'Cairo', fontSize: 12, color: diffColor, fontWeight: FontWeight.bold)),
                           ),
                         ],
                       ),

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'dart:io';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/i18n/app_strings.dart';
 import '../../../core/models/offline_lesson.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/offline_download_service.dart';
@@ -38,7 +39,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تعذر الحذف', style: TextStyle(fontFamily: 'Cairo')), behavior: SnackBarBehavior.floating),
+          SnackBar(content: Text(tr('common.deleteFailed'), style: const TextStyle(fontFamily: 'Cairo')), behavior: SnackBarBehavior.floating),
         );
       }
     }
@@ -47,7 +48,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
   void _openVideo(OfflineLesson ol) {
     if (ol.localVideoPath.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('الفيديو غير موجود محلياً', style: TextStyle(fontFamily: 'Cairo')), behavior: SnackBarBehavior.floating),
+        SnackBar(content: Text(tr('downloads.videoMissing'), style: const TextStyle(fontFamily: 'Cairo')), behavior: SnackBarBehavior.floating),
       );
       return;
     }
@@ -61,12 +62,12 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
   void _openSummary(OfflineLesson ol) {
     if (ol.localSummaryPath.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('الملخص غير موجود محلياً', style: TextStyle(fontFamily: 'Cairo')), behavior: SnackBarBehavior.floating),
+        SnackBar(content: Text(tr('downloads.summaryMissing'), style: const TextStyle(fontFamily: 'Cairo')), behavior: SnackBarBehavior.floating),
       );
       return;
     }
     Navigator.pushNamed(context, AppRoutes.pdfViewer, arguments: {
-      'title': 'ملخص: ${ol.title}',
+      'title': '${tr('summaryPrefix')}${ol.title}',
       'localPath': ol.localSummaryPath,
     });
   }
@@ -79,7 +80,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
   Widget build(BuildContext context) {
     if (kIsWeb) {
       return Scaffold(
-        appBar: widget.standalone ? const AppHeader(title: 'التنزيلات') : null,
+        appBar: widget.standalone ? AppHeader(title: tr('downloads.title')) : null,
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(32),
@@ -88,14 +89,14 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
               children: [
                 const Icon(Icons.phone_android_outlined, size: 72, color: AppColors.textLight),
                 const SizedBox(height: 16),
-                const Text(
-                  'التنزيل بدون إنترنت',
-                  style: TextStyle(fontFamily: 'Cairo', fontSize: 18, fontWeight: FontWeight.bold),
+                Text(
+                  tr('downloads.webTitle'),
+                  style: const TextStyle(fontFamily: 'Cairo', fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  'تنزيل الدروس للمشاهدة بدون إنترنت متاح في تطبيق الهاتف فقط.\nعلى الويب يمكنك مشاهدة الدروس وفتح الملخصات مباشرة من صفحة الدرس.',
-                  style: TextStyle(fontFamily: 'Cairo', fontSize: 13, color: AppColors.textSecondary, height: 1.7),
+                Text(
+                  tr('downloads.webBody'),
+                  style: const TextStyle(fontFamily: 'Cairo', fontSize: 13, color: AppColors.textSecondary, height: 1.7),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -106,14 +107,14 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     }
 
     return Scaffold(
-      appBar: widget.standalone ? const AppHeader(title: 'التنزيلات') : null,
+      appBar: widget.standalone ? AppHeader(title: tr('downloads.title')) : null,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!widget.standalone)
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
-              child: Text('التنزيلات', style: TextStyle(fontFamily: 'Cairo', fontSize: 20, fontWeight: FontWeight.bold)),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+              child: Text(tr('downloads.title'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 20, fontWeight: FontWeight.bold)),
             ),
           Expanded(
             child: _loading
@@ -125,9 +126,9 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                           children: [
                             Icon(Icons.download_outlined, size: 64, color: AppColors.textLight),
                             const SizedBox(height: 12),
-                            const Text('لا توجد دروس محملة بعد', style: TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
+                            Text(tr('downloads.emptyTitle'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
                             const SizedBox(height: 4),
-                            const Text('افتح أي درس واضغط "تنزيل للمشاهدة بدون إنترنت"', style: TextStyle(fontFamily: 'Cairo', fontSize: 12, color: AppColors.textLight)),
+                            Text(tr('downloads.emptyHint'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 12, color: AppColors.textLight)),
                           ],
                         ),
                       )
@@ -238,7 +239,7 @@ class _LessonCard extends StatelessWidget {
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline, color: AppColors.error, size: 22),
-                  tooltip: 'حذف من الجهاز',
+                  tooltip: tr('downloads.deleteDevice'),
                   onPressed: onDelete,
                 ),
               ],
@@ -256,7 +257,7 @@ class _LessonCard extends StatelessWidget {
                       child: ElevatedButton.icon(
                         onPressed: onOpenVideo,
                         icon: const Icon(Icons.play_arrow_rounded, size: 18),
-                        label: const Text('مشاهدة', style: TextStyle(fontFamily: 'Cairo', fontSize: 12)),
+                        label: Text(tr('downloads.watch'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 12)),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: AppColors.white,
@@ -272,7 +273,7 @@ class _LessonCard extends StatelessWidget {
                       child: OutlinedButton.icon(
                         onPressed: onOpenSummary,
                         icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
-                        label: const Text('الملخص', style: TextStyle(fontFamily: 'Cairo', fontSize: 12)),
+                        label: Text(tr('downloads.summary'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 12)),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.error,
                           side: const BorderSide(color: AppColors.error),

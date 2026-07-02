@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../../core/i18n/app_strings.dart';
 import '../../../core/models/announcement.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/url_helper.dart';
@@ -234,9 +235,9 @@ class _BannerItem extends StatelessWidget {
                       color: Colors.black.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text(
-                      'اضغط للمزيد',
-                      style: TextStyle(
+                    child: Text(
+                      tr('ann.tapMore'),
+                      style: const TextStyle(
                         fontFamily: 'Cairo',
                         fontSize: 11,
                         color: Colors.white,

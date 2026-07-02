@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/i18n/app_strings.dart';
 import '../../../core/models/lesson.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/lesson_service.dart';
+import '../../../core/services/subscription_service.dart';
 import '../../../core/utils/url_helper.dart';
 import '../../../shared/widgets/api_state_widget.dart';
 import '../../../shared/widgets/app_header.dart';
@@ -17,13 +19,30 @@ class LessonsListScreen extends StatefulWidget {
 class _LessonsListScreenState extends State<LessonsListScreen> {
   late Future<List<Lesson>> _future;
   int? _subjectId;
+  bool _initialized = false;
+  bool _userSubscribed = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_subjectId == null) {
+    if (!_initialized) {
+      _initialized = true;
       _subjectId = ModalRoute.of(context)?.settings.arguments as int?;
       _future = lessonService.getLessons(subjectId: _subjectId);
+      _loadSubscription();
+    }
+  }
+
+  // نجلب حالة الاشتراك مرة واحدة لتحديد قفل الدروس المدفوعة في البطاقات.
+  // نفس المصدر المستخدم في صفحة التفاصيل — بلا API جديد.
+  Future<void> _loadSubscription() async {
+    try {
+      final sub = await subscriptionService.getMySubscription();
+      if (!mounted) return;
+      final active = sub.hasSubscription && sub.isActive;
+      if (active != _userSubscribed) setState(() => _userSubscribed = active);
+    } catch (_) {
+      // عند الفشل نبقى على القيمة الآمنة (غير مشترك) — لا يكسر شيئاً.
     }
   }
 
@@ -33,14 +52,14 @@ class _LessonsListScreenState extends State<LessonsListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final title = _subjectId != null ? 'دروس المادة' : 'جميع الدروس';
+    final title = _subjectId != null ? tr('lessons.subjectTitle') : tr('lessons.allTitle');
     return Scaffold(
       appBar: AppHeader(title: title),
       body: ApiBuilder<List<Lesson>>(
         future: _future,
         onRetry: _reload,
         builder: (lessons) => lessons.isEmpty
-            ? const Center(child: Text('لا توجد دروس حالياً', style: TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)))
+            ? Center(child: Text(tr('lessons.none'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)))
             : ListView.builder(
                 padding: const EdgeInsets.all(16),
                 itemCount: lessons.length,
@@ -49,6 +68,7 @@ class _LessonsListScreenState extends State<LessonsListScreen> {
                   return _LessonCard(
                     lesson: l,
                     index: i + 1,
+                    userSubscribed: _userSubscribed,
                     onTap: () => Navigator.pushNamed(context, AppRoutes.lessonDetails, arguments: l),
                   );
                 },
@@ -61,14 +81,22 @@ class _LessonsListScreenState extends State<LessonsListScreen> {
 class _LessonCard extends StatelessWidget {
   final Lesson lesson;
   final int index;
+  final bool userSubscribed;
   final VoidCallback onTap;
 
-  const _LessonCard({required this.lesson, required this.index, required this.onTap});
+  const _LessonCard({
+    required this.lesson,
+    required this.index,
+    required this.userSubscribed,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final hasCover = lesson.coverImageUrl.isNotEmpty;
     final coverUrl = hasCover ? buildFileUrl(lesson.coverImageUrl) : '';
+    // مقفل فقط إذا كان الدرس مدفوعاً والمستخدم غير مشترك.
+    final locked = !lesson.isFree && !userSubscribed;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -122,7 +150,7 @@ class _LessonCard extends StatelessWidget {
                           ],
                         ),
                         child: Icon(
-                          lesson.isFree ? Icons.play_arrow_rounded : Icons.lock_rounded,
+                          locked ? Icons.lock_rounded : Icons.play_arrow_rounded,
                           color: AppColors.primary,
                           size: 34,
                         ),
@@ -149,20 +177,21 @@ class _LessonCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    // شارة "مجاني" أعلى الجهة المقابلة
-                    if (lesson.isFree)
+                    // شارة الحالة: مجاني / للمشتركين فقط.
+                    // لا شارة للدرس المدفوع عندما يكون المستخدم مشتركاً.
+                    if (lesson.isFree || locked)
                       PositionedDirectional(
                         top: 10,
                         end: 10,
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: AppColors.success,
+                            color: lesson.isFree ? AppColors.success : AppColors.warning,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Text(
-                            'مجاني',
-                            style: TextStyle(
+                          child: Text(
+                            lesson.isFree ? tr('lessons.free') : tr('lessons.subscribersOnly'),
+                            style: const TextStyle(
                               fontFamily: 'Cairo',
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -220,9 +249,9 @@ class _LessonCard extends StatelessWidget {
                   child: TextButton.icon(
                     onPressed: onTap,
                     icon: const Icon(Icons.play_circle_outline, size: 20, color: AppColors.primary),
-                    label: const Text(
-                      'شاهد',
-                      style: TextStyle(
+                    label: Text(
+                      tr('lessons.watch'),
+                      style: const TextStyle(
                         fontFamily: 'Cairo',
                         fontWeight: FontWeight.bold,
                         color: AppColors.primary,
@@ -247,8 +276,34 @@ class _LessonCard extends StatelessWidget {
     );
   }
 
+  // Placeholder تعليمي محترم عندما لا يوجد غلاف صالح:
+  // تدرّج لوني هادئ + العنوان أسفل الصورة (بعيداً عن زر Play في الوسط)،
+  // بدل بلوك أزرق فارغ ودون إخفاء العنوان خلف زر التشغيل.
   Widget _placeholderBox() => Container(
-        color: AppColors.primaryDark,
-        child: const Center(child: Icon(Icons.menu_book_outlined, color: Colors.white54, size: 40)),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [AppColors.primaryLight, AppColors.primaryDark],
+          ),
+        ),
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+            child: Text(
+              lesson.title,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontFamily: 'Cairo',
+                color: Colors.white70,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ),
       );
 }

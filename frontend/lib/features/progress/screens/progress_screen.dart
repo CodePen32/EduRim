@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/i18n/app_strings.dart';
 import '../../../core/models/progress_stats.dart';
 import '../../../core/services/progress_service.dart';
 import '../../../shared/widgets/app_header.dart';
@@ -36,14 +37,14 @@ class _ProgressScreenState extends State<ProgressScreen> {
         });
       }
     } catch (_) {
-      if (mounted) setState(() { _error = 'تعذر تحميل البيانات'; _loading = false; });
+      if (mounted) setState(() { _error = tr('profile.loadError'); _loading = false; });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AppHeader(title: 'تقدمي الدراسي'),
+      appBar: AppHeader(title: tr('progress.title')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
@@ -55,7 +56,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       const SizedBox(height: 12),
                       TextButton(
                         onPressed: _load,
-                        child: const Text('إعادة المحاولة', style: TextStyle(fontFamily: 'Cairo', color: AppColors.primary)),
+                        child: Text(tr('common.retry'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.primary)),
                       ),
                     ],
                   ),
@@ -68,9 +69,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       // Stats cards
                       Row(
                         children: [
-                          Expanded(child: _StatCard(label: 'الدروس المكتملة', value: '${_stats?.completedLessons ?? 0}', icon: Icons.check_circle_outline)),
+                          Expanded(child: _StatCard(label: tr('progress.completedLessons'), value: '${_stats?.completedLessons ?? 0}', icon: Icons.check_circle_outline)),
                           const SizedBox(width: 12),
-                          Expanded(child: _StatCard(label: 'متوسط التقدم', value: '${(_stats?.averagePercentage ?? 0).toStringAsFixed(0)}%', icon: Icons.trending_up)),
+                          Expanded(child: _StatCard(label: tr('progress.avg'), value: '${(_stats?.averagePercentage ?? 0).toStringAsFixed(0)}%', icon: Icons.trending_up)),
                         ],
                       ),
                       const SizedBox(height: 12),
@@ -90,7 +91,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text('آخر درس', style: TextStyle(fontFamily: 'Cairo', fontSize: 12, color: AppColors.textSecondary)),
+                                    Text(tr('progress.lastLesson'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 12, color: AppColors.textSecondary)),
                                     Text(_stats!.lastLessonTitle, style: const TextStyle(fontFamily: 'Cairo', fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.primaryDark)),
                                   ],
                                 ),
@@ -99,13 +100,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
                           ),
                         ),
                       const SizedBox(height: 20),
-                      const Text('التقدم حسب المادة', style: TextStyle(fontFamily: 'Cairo', fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text(tr('progress.bySubject'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                       const SizedBox(height: 12),
                       if (_subjects.isEmpty)
-                        const Center(
+                        Center(
                           child: Padding(
-                            padding: EdgeInsets.all(32),
-                            child: Text('لا توجد بيانات تقدم بعد', style: TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
+                            padding: const EdgeInsets.all(32),
+                            child: Text(tr('progress.noData'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
                           ),
                         )
                       else

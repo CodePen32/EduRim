@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/i18n/app_strings.dart';
+import '../../../core/i18n/locale_controller.dart';
 import '../../../core/models/learning_path.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/auth_service.dart';
@@ -83,10 +85,10 @@ class _SelectBacBranchScreenState extends State<SelectBacBranchScreen>
   @override
   Widget build(BuildContext context) {
     return Directionality(
-      textDirection: TextDirection.rtl,
+      textDirection: localeController.direction,
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F7FB),
-        appBar: const SelectionAppBar(title: 'اختر شعبة الباكالوريا', showBack: true),
+        appBar: SelectionAppBar(title: tr('branch.appbar'), showBack: true),
         body: _checking
             ? const Center(child: CircularProgressIndicator())
             : FadeTransition(
@@ -94,9 +96,9 @@ class _SelectBacBranchScreenState extends State<SelectBacBranchScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SelectionSectionHeader(
-                title: 'اختر شعبتك',
-                subtitle: 'سيتم عرض المواد والمحتوى المناسب لشعبتك فقط',
+              SelectionSectionHeader(
+                title: tr('branch.title'),
+                subtitle: tr('branch.subtitle'),
               ),
               const SizedBox(height: 12),
               const SelectionStepIndicator(step: 2, total: 2),
@@ -125,7 +127,7 @@ class _SelectBacBranchScreenState extends State<SelectBacBranchScreen>
                 ),
               ),
               SelectionBottomButton(
-                label: 'ابدأ التعلم',
+                label: tr('branch.start'),
                 saving: _saving,
                 enabled: _selected != null,
                 onPressed: _proceed,

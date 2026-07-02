@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/i18n/app_strings.dart';
 import '../../../core/models/subscription.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/subscription_service.dart';
@@ -58,8 +59,8 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text(
-          'اشتراكي',
+        title: Text(
+          tr('mysub.title'),
           style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
         ),
         backgroundColor: AppColors.primary,
@@ -122,12 +123,12 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
             ),
             child: Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'اشتراكك سينتهي قريبًا، يرجى تجديده للاستمرار في الوصول إلى الدروس.',
-                    style: TextStyle(
+                    tr('mysub.expiringSoon'),
+                    style: const TextStyle(
                         fontFamily: 'Cairo', fontSize: 13, color: Color(0xFF92400E), height: 1.5),
-                    textAlign: TextAlign.right,
+                    textAlign: TextAlign.start,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -167,14 +168,14 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: AppColors.success.withValues(alpha: 0.5)),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.check_circle, color: AppColors.success, size: 14),
-                        SizedBox(width: 4),
+                        const Icon(Icons.check_circle, color: AppColors.success, size: 14),
+                        const SizedBox(width: 4),
                         Text(
-                          'نشط',
-                          style: TextStyle(
+                          tr('mysub.activeBadge'),
+                          style: const TextStyle(
                               fontFamily: 'Cairo',
                               color: AppColors.success,
                               fontSize: 12,
@@ -194,7 +195,7 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                     color: AppColors.white),
-                textAlign: TextAlign.right,
+                textAlign: TextAlign.start,
               ),
               const SizedBox(height: 16),
               Row(
@@ -203,11 +204,11 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      const Text('تبقى',
-                          style: TextStyle(
+                      Text(tr('mysub.remaining'),
+                          style: const TextStyle(
                               fontFamily: 'Cairo', color: Colors.white70, fontSize: 12)),
                       Text(
-                        '${sub.daysRemaining} يوم',
+                        AppStrings.withArg('mysub.daysUnit', '${sub.daysRemaining}'),
                         style: const TextStyle(
                             fontFamily: 'Cairo',
                             color: AppColors.white,
@@ -222,23 +223,23 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
           ),
         ),
         const SizedBox(height: 24),
-        const Text(
-          'تفاصيل الاشتراك',
-          style: TextStyle(
+        Text(
+          tr('mysub.details'),
+          style: const TextStyle(
               fontFamily: 'Cairo',
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary),
         ),
         const SizedBox(height: 12),
-        _InfoRow(icon: Icons.calendar_today_outlined, label: 'تاريخ البداية', value: sub.startDate),
+        _InfoRow(icon: Icons.calendar_today_outlined, label: tr('mysub.startDate'), value: sub.startDate),
         const SizedBox(height: 8),
-        _InfoRow(icon: Icons.event_outlined, label: 'تاريخ الانتهاء', value: sub.endDate),
+        _InfoRow(icon: Icons.event_outlined, label: tr('mysub.endDate'), value: sub.endDate),
         const SizedBox(height: 8),
         _InfoRow(
             icon: Icons.timer_outlined,
-            label: 'الأيام المتبقية',
-            value: '${sub.daysRemaining} يوم'),
+            label: tr('mysub.daysRemaining'),
+            value: AppStrings.withArg('mysub.daysUnit', '${sub.daysRemaining}')),
         if (expiringSoon) ...[
           const SizedBox(height: 20),
           SizedBox(
@@ -249,8 +250,8 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
                 _load();
               },
               icon: const Icon(Icons.refresh_rounded, color: AppColors.primary),
-              label: const Text('طلب تجديد الاشتراك',
-                  style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, color: AppColors.primary)),
+              label: Text(tr('mysub.renew'),
+                  style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, color: AppColors.primary)),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 side: const BorderSide(color: AppColors.primary),
@@ -278,38 +279,38 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              const Row(
+              Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Text(
-                    'طلبك قيد المراجعة',
-                    style: TextStyle(
+                    tr('mysub.pending'),
+                    style: const TextStyle(
                         fontFamily: 'Cairo',
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFFD97706)),
                   ),
-                  SizedBox(width: 8),
-                  Icon(Icons.hourglass_top_rounded, color: Color(0xFFD97706), size: 22),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.hourglass_top_rounded, color: Color(0xFFD97706), size: 22),
                 ],
               ),
               const SizedBox(height: 10),
               if (req.planName.isNotEmpty)
                 Text(
-                  'الخطة: ${req.planName}',
+                  AppStrings.withArg('mysub.plan', req.planName),
                   style: const TextStyle(
                       fontFamily: 'Cairo', fontSize: 14, color: Color(0xFF92400E)),
-                  textAlign: TextAlign.right,
+                  textAlign: TextAlign.start,
                 ),
               const SizedBox(height: 6),
               Text(
-                'تم إرسال الطلب وسيتم مراجعته من قِبَل الإدارة قريباً.',
+                tr('mysub.pendingBody'),
                 style: const TextStyle(
                     fontFamily: 'Cairo',
                     fontSize: 13,
                     color: Color(0xFF92400E),
                     height: 1.6),
-                textAlign: TextAlign.right,
+                textAlign: TextAlign.start,
               ),
             ],
           ),
@@ -333,28 +334,28 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              const Row(
+              Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Text(
-                    'تم رفض طلبك السابق',
-                    style: TextStyle(
+                    tr('mysub.rejected'),
+                    style: const TextStyle(
                         fontFamily: 'Cairo',
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFFDC2626)),
                   ),
-                  SizedBox(width: 8),
-                  Icon(Icons.cancel_outlined, color: Color(0xFFDC2626), size: 22),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.cancel_outlined, color: Color(0xFFDC2626), size: 22),
                 ],
               ),
               if (req.adminNote.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Text(
-                  'سبب الرفض: ${req.adminNote}',
+                  AppStrings.withArg('mysub.rejectReason', req.adminNote),
                   style: const TextStyle(
                       fontFamily: 'Cairo', fontSize: 13, color: Color(0xFF991B1B)),
-                  textAlign: TextAlign.right,
+                  textAlign: TextAlign.start,
                 ),
               ],
             ],
@@ -369,9 +370,9 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
               _load();
             },
             icon: const Icon(Icons.refresh_rounded),
-            label: const Text(
-              'إرسال طلب جديد',
-              style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
+            label: Text(
+              tr('mysub.newRequest'),
+              style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
@@ -400,18 +401,18 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
               color: AppColors.primary, size: 48),
         ),
         const SizedBox(height: 24),
-        const Text(
-          'لا يوجد اشتراك نشط',
-          style: TextStyle(
+        Text(
+          tr('mysub.noActive'),
+          style: const TextStyle(
               fontFamily: 'Cairo',
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary),
         ),
         const SizedBox(height: 12),
-        const Text(
-          'للوصول إلى جميع الدروس والمحتوى المدفوع،\nقدّم طلب اشتراك وسيتم مراجعته.',
-          style: TextStyle(
+        Text(
+          tr('mysub.noActiveBody'),
+          style: const TextStyle(
               fontFamily: 'Cairo',
               fontSize: 14,
               color: AppColors.textSecondary,
@@ -427,9 +428,9 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
               _load();
             },
             icon: const Icon(Icons.add_card_rounded),
-            label: const Text(
-              'طلب اشتراك',
-              style: TextStyle(
+            label: Text(
+              tr('mysub.request'),
+              style: const TextStyle(
                   fontFamily: 'Cairo', fontWeight: FontWeight.bold, fontSize: 16),
             ),
             style: ElevatedButton.styleFrom(

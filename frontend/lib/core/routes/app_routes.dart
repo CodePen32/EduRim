@@ -29,6 +29,7 @@ import '../../features/info/screens/terms_screen.dart';
 import '../../features/info/screens/faq_screen.dart';
 import '../../features/info/screens/contact_history_screen.dart';
 import '../../features/info/screens/suggest_feature_screen.dart';
+import '../../features/settings/screens/language_screen.dart';
 
 class AppRoutes {
   static const String login = '/login';
@@ -61,6 +62,7 @@ class AppRoutes {
   static const String faq = '/faq';
   static const String contactHistory = '/contact-history';
   static const String suggestFeature = '/suggest-feature';
+  static const String language = '/language';
 
   static Map<String, WidgetBuilder> get routes => {
     login: (_) => const LoginScreen(),
@@ -93,5 +95,6 @@ class AppRoutes {
     faq: (_) => const FaqScreen(),
     contactHistory: (_) => const ContactHistoryScreen(),
     suggestFeature: (_) => const SuggestFeatureScreen(),
+    language: (_) => const LanguageScreen(),
   };
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/i18n/app_strings.dart';
 import '../../../core/models/exercise.dart';
 import '../../../core/services/download_service.dart';
 import '../../../core/services/favorite_service.dart';
@@ -24,12 +25,12 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen> {
       if (!mounted) return;
       if (added) {
         setState(() => _favorited = true);
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تمت الإضافة إلى المفضلة ❤️', style: TextStyle(fontFamily: 'Cairo')), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('exDet.addedFav'), style: const TextStyle(fontFamily: 'Cairo')), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('التمرين موجود في المفضلة بالفعل', style: TextStyle(fontFamily: 'Cairo')), behavior: SnackBarBehavior.floating));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('exDet.alreadyFav'), style: const TextStyle(fontFamily: 'Cairo')), behavior: SnackBarBehavior.floating));
       }
     } catch (_) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر الإضافة', style: TextStyle(fontFamily: 'Cairo')), behavior: SnackBarBehavior.floating));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('exDet.addFailed'), style: const TextStyle(fontFamily: 'Cairo')), behavior: SnackBarBehavior.floating));
     }
   }
 
@@ -39,12 +40,12 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen> {
       if (!mounted) return;
       if (saved) {
         setState(() => _saved = true);
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حفظ التمرين في قائمة التنزيلات', style: TextStyle(fontFamily: 'Cairo')), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('exDet.savedDownloads'), style: const TextStyle(fontFamily: 'Cairo')), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('التمرين محفوظ بالفعل', style: TextStyle(fontFamily: 'Cairo')), behavior: SnackBarBehavior.floating));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('exDet.alreadySaved'), style: const TextStyle(fontFamily: 'Cairo')), behavior: SnackBarBehavior.floating));
       }
     } catch (_) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر الحفظ', style: TextStyle(fontFamily: 'Cairo')), behavior: SnackBarBehavior.floating));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('exDet.saveFailed'), style: const TextStyle(fontFamily: 'Cairo')), behavior: SnackBarBehavior.floating));
     }
   }
 
@@ -63,7 +64,7 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen> {
   Widget build(BuildContext context) {
     final exercise = ModalRoute.of(context)?.settings.arguments as Exercise?;
 
-    final title = exercise?.title ?? 'تفاصيل التمرين';
+    final title = exercise?.title ?? tr('exDet.title');
     final year = exercise?.year ?? 0;
     final difficulty = exercise?.difficulty ?? 'متوسط';
     final exerciseUrl = exercise?.exerciseFileUrl ?? '';
@@ -76,7 +77,7 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen> {
     final exerciseId = exercise?.id ?? 0;
 
     return Scaffold(
-      appBar: const AppHeader(title: 'تفاصيل التمرين'),
+      appBar: AppHeader(title: tr('exDet.title')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -109,7 +110,7 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen> {
                             if (year > 0) ...[
                               const Icon(Icons.calendar_today, size: 13, color: Colors.white70),
                               const SizedBox(width: 4),
-                              Text('سنة $year', style: const TextStyle(fontFamily: 'Cairo', fontSize: 12, color: Colors.white70)),
+                              Text(AppStrings.withArg('exercises.year', '$year'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 12, color: Colors.white70)),
                               const SizedBox(width: 12),
                             ],
                             Container(
@@ -119,7 +120,7 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen> {
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
-                                difficulty,
+                                AppStrings.difficulty(difficulty),
                                 style: TextStyle(
                                   fontFamily: 'Cairo',
                                   fontSize: 11,
@@ -137,13 +138,13 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen> {
               ),
             ),
             const SizedBox(height: 28),
-            const Text('موارد التمرين', style: TextStyle(fontFamily: 'Cairo', fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(tr('exDet.resources'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 14),
 
             // ملف التمرين
             _ResourceCard(
-              title: 'ملف التمرين',
-              subtitle: hasFile ? 'اضغط لعرض التمرين' : 'ملف التمرين غير متاح حالياً',
+              title: tr('exDet.file'),
+              subtitle: hasFile ? tr('exDet.fileTap') : tr('exDet.fileUnavailable'),
               icon: Icons.picture_as_pdf_outlined,
               color: AppColors.error,
               enabled: hasFile,
@@ -153,8 +154,8 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen> {
 
             // الحل النموذجي
             _ResourceCard(
-              title: 'الحل النموذجي',
-              subtitle: hasSolution ? 'اضغط لعرض الحل' : 'الحل غير متاح حالياً',
+              title: tr('exDet.solution'),
+              subtitle: hasSolution ? tr('exDet.solutionTap') : tr('exDet.solutionUnavailable'),
               icon: Icons.check_circle_outline,
               color: AppColors.success,
               enabled: hasSolution,
@@ -164,8 +165,8 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen> {
 
             // فيديو الحل
             _ResourceCard(
-              title: 'فيديو الحل',
-              subtitle: hasVideo ? 'شاهد شرح الحل بالفيديو' : 'شرح الفيديو غير متاح حالياً',
+              title: tr('exDet.videoSolution'),
+              subtitle: hasVideo ? tr('exDet.videoTap') : tr('exDet.videoUnavailable'),
               icon: Icons.play_circle_outline,
               color: AppColors.primary,
               enabled: hasVideo,
@@ -174,15 +175,15 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen> {
             const SizedBox(height: 28),
 
             PrimaryButton(
-              label: hasFile ? 'فتح ملف التمرين' : 'ملف التمرين غير متاح حالياً',
+              label: hasFile ? tr('exDet.openFile') : tr('exDet.fileUnavailable'),
               icon: Icons.open_in_new_rounded,
               onPressed: hasFile
                   ? () => openExternalUrl(exerciseUrl, context: context)
                   : () => ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('ملف التمرين غير متاح حالياً', style: TextStyle(fontFamily: 'Cairo')),
+                        SnackBar(
+                          content: Text(tr('exDet.fileUnavailable'), style: const TextStyle(fontFamily: 'Cairo')),
                           behavior: SnackBarBehavior.floating,
-                          duration: Duration(seconds: 2),
+                          duration: const Duration(seconds: 2),
                         ),
                       ),
             ),
@@ -194,7 +195,7 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen> {
                     onPressed: exerciseId > 0 ? () => _toggleFavorite(exerciseId) : null,
                     icon: Icon(_favorited ? Icons.favorite : Icons.favorite_border,
                         color: _favorited ? AppColors.error : AppColors.primary),
-                    label: Text(_favorited ? 'في المفضلة' : 'إضافة للمفضلة',
+                    label: Text(_favorited ? tr('exDet.inFav') : tr('exDet.addFav'),
                         style: const TextStyle(fontFamily: 'Cairo')),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: _favorited ? AppColors.error : AppColors.primary,
@@ -210,7 +211,7 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen> {
                     onPressed: exerciseId > 0 ? () => _saveExercise(exerciseId) : null,
                     icon: Icon(_saved ? Icons.bookmark : Icons.bookmark_border,
                         color: _saved ? AppColors.success : AppColors.primary),
-                    label: Text(_saved ? 'محفوظ' : 'حفظ التمرين',
+                    label: Text(_saved ? tr('exDet.saved') : tr('exDet.save'),
                         style: const TextStyle(fontFamily: 'Cairo')),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: _saved ? AppColors.success : AppColors.primary,

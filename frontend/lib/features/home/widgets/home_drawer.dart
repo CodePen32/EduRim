@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/i18n/app_strings.dart';
 import '../../../core/models/user.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/auth_service.dart';
@@ -64,12 +65,12 @@ class HomeDrawer extends StatelessWidget {
               children: [
                 _DrawerItem(
                   icon: Icons.home_rounded,
-                  label: 'الصفحة الرئيسية',
+                  label: tr('drawer.home'),
                   onTap: () => Navigator.pop(context),
                 ),
                 _DrawerItem(
                   icon: Icons.menu_book_rounded,
-                  label: 'المواد',
+                  label: tr('drawer.subjects'),
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.pushNamed(context, AppRoutes.subjects);
@@ -77,7 +78,7 @@ class HomeDrawer extends StatelessWidget {
                 ),
                 _DrawerItem(
                   icon: Icons.credit_card_rounded,
-                  label: 'اشتراكي',
+                  label: tr('drawer.subscription'),
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.pushNamed(context, AppRoutes.mySubscription);
@@ -85,44 +86,49 @@ class HomeDrawer extends StatelessWidget {
                 ),
                 _DrawerItem(
                   icon: Icons.notifications_rounded,
-                  label: 'الإشعارات',
+                  label: tr('drawer.notifications'),
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.pushNamed(context, AppRoutes.notifications);
                   },
                 ),
+                _DrawerItem(
+                  icon: Icons.language_rounded,
+                  label: tr('drawer.language'),
+                  onTap: () => _go(context, AppRoutes.language),
+                ),
 
-                const _SectionLabel('الدعم والمساعدة'),
+                _SectionLabel(tr('drawer.support')),
                 _DrawerItem(
                   icon: Icons.chat_rounded,
-                  label: 'تواصل معنا',
+                  label: tr('drawer.contact'),
                   onTap: () => _openWhatsApp(context),
                 ),
                 _DrawerItem(
                   icon: Icons.contact_page_rounded,
-                  label: 'سجل التواصل',
+                  label: tr('drawer.contactHistory'),
                   onTap: () => _go(context, AppRoutes.contactHistory),
                 ),
                 _DrawerItem(
                   icon: Icons.help_rounded,
-                  label: 'الأسئلة الشائعة',
+                  label: tr('drawer.faq'),
                   onTap: () => _go(context, AppRoutes.faq),
                 ),
                 _DrawerItem(
                   icon: Icons.lightbulb_rounded,
-                  label: 'اقترح تطوير',
+                  label: tr('drawer.suggest'),
                   onTap: () => _go(context, AppRoutes.suggestFeature),
                 ),
 
-                const _SectionLabel('معلومات قانونية'),
+                _SectionLabel(tr('drawer.legal')),
                 _DrawerItem(
                   icon: Icons.info_rounded,
-                  label: 'من نحن',
+                  label: tr('drawer.about'),
                   onTap: () => _go(context, AppRoutes.aboutUs),
                 ),
                 _DrawerItem(
                   icon: Icons.description_rounded,
-                  label: 'شروط الاستخدام',
+                  label: tr('drawer.terms'),
                   onTap: () => _go(context, AppRoutes.terms),
                 ),
 
@@ -131,7 +137,7 @@ class HomeDrawer extends StatelessWidget {
                 const SizedBox(height: 6),
                 _DrawerItem(
                   icon: Icons.logout_rounded,
-                  label: 'تسجيل الخروج',
+                  label: tr('drawer.logout'),
                   color: AppColors.error,
                   onTap: () => _confirmLogout(context),
                 ),
@@ -158,23 +164,20 @@ class HomeDrawer extends StatelessWidget {
   Future<void> _confirmLogout(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('تسجيل الخروج', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
-          content: const Text('هل تريد تسجيل الخروج؟', style: TextStyle(fontFamily: 'Cairo')),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('إلغاء', style: TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('تسجيل الخروج', style: TextStyle(fontFamily: 'Cairo', color: AppColors.error, fontWeight: FontWeight.bold)),
-            ),
-          ],
-        ),
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(tr('drawer.logout'), style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
+        content: Text(tr('logout.confirm'), style: const TextStyle(fontFamily: 'Cairo')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(tr('common.cancel'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(tr('drawer.logout'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.error, fontWeight: FontWeight.bold)),
+          ),
+        ],
       ),
     );
     if (confirmed != true) return;
@@ -222,7 +225,7 @@ class _SectionLabel extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 6),
       child: Align(
-        alignment: Alignment.centerRight,
+        alignment: AlignmentDirectional.centerStart,
         child: Text(
           text,
           style: const TextStyle(fontFamily: 'Cairo', fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textLight, letterSpacing: 0.3),
@@ -253,14 +256,6 @@ class _DrawerItem extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
           child: Row(
             children: [
-              Expanded(
-                child: Text(
-                  label,
-                  style: TextStyle(fontFamily: 'Cairo', fontSize: 14.5, color: c, fontWeight: FontWeight.w500),
-                  textAlign: TextAlign.right,
-                ),
-              ),
-              const SizedBox(width: 14),
               Container(
                 width: 38,
                 height: 38,
@@ -269,6 +264,14 @@ class _DrawerItem extends StatelessWidget {
                   borderRadius: BorderRadius.circular(11),
                 ),
                 child: Icon(icon, color: tint, size: 20),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(fontFamily: 'Cairo', fontSize: 14.5, color: c, fontWeight: FontWeight.w500),
+                  textAlign: TextAlign.start,
+                ),
               ),
             ],
           ),

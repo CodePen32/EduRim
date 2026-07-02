@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/i18n/app_strings.dart';
 
 class BottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -18,12 +19,12 @@ class BottomNavBar extends StatelessWidget {
       backgroundColor: AppColors.white,
       selectedLabelStyle: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w600, fontSize: 11),
       unselectedLabelStyle: const TextStyle(fontFamily: 'Cairo', fontSize: 11),
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'الرئيسية'),
-        BottomNavigationBarItem(icon: Icon(Icons.favorite_rounded), label: 'المفضلة'),
-        BottomNavigationBarItem(icon: Icon(Icons.download_rounded), label: 'التنزيلات'),
-        BottomNavigationBarItem(icon: Icon(Icons.calculate_rounded), label: 'الحاسبة'),
-        BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'حسابي'),
+      items: [
+        BottomNavigationBarItem(icon: const Icon(Icons.home_rounded), label: tr('nav.home')),
+        BottomNavigationBarItem(icon: const Icon(Icons.favorite_rounded), label: tr('nav.favorites')),
+        BottomNavigationBarItem(icon: const Icon(Icons.download_rounded), label: tr('nav.downloads')),
+        BottomNavigationBarItem(icon: const Icon(Icons.calculate_rounded), label: tr('nav.calculator')),
+        BottomNavigationBarItem(icon: const Icon(Icons.person_rounded), label: tr('nav.account')),
       ],
     );
   }

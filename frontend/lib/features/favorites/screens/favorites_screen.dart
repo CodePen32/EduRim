@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/i18n/app_strings.dart';
 import '../../../core/models/favorite.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/favorite_service.dart';
@@ -30,7 +31,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       final list = await favoriteService.getFavorites();
       if (mounted) setState(() { _favorites = list; _loading = false; });
     } catch (_) {
-      if (mounted) setState(() { _error = 'تعذر تحميل المفضلة'; _loading = false; });
+      if (mounted) setState(() { _error = tr('fav.loadError'); _loading = false; });
     }
   }
 
@@ -41,7 +42,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تعذر الحذف', style: TextStyle(fontFamily: 'Cairo')), behavior: SnackBarBehavior.floating),
+          SnackBar(content: Text(tr('common.deleteFailed'), style: const TextStyle(fontFamily: 'Cairo')), behavior: SnackBarBehavior.floating),
         );
       }
     }
@@ -71,8 +72,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
   String _labelFor(String type) {
     switch (type) {
-      case 'lesson':   return 'درس';
-      case 'exercise': return 'تمرين';
+      case 'lesson':   return tr('fav.lesson');
+      case 'exercise': return tr('fav.exercise');
       default:         return type;
     }
   }
@@ -88,14 +89,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: widget.standalone ? const AppHeader(title: 'المفضلة') : null,
+      appBar: widget.standalone ? AppHeader(title: tr('fav.title')) : null,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!widget.standalone)
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
-              child: Text('المفضلة', style: TextStyle(fontFamily: 'Cairo', fontSize: 20, fontWeight: FontWeight.bold)),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+              child: Text(tr('fav.title'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 20, fontWeight: FontWeight.bold)),
             ),
           Expanded(
             child: _loading
@@ -109,7 +110,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                             const SizedBox(height: 12),
                             TextButton(
                               onPressed: _load,
-                              child: const Text('إعادة المحاولة', style: TextStyle(fontFamily: 'Cairo', color: AppColors.primary)),
+                              child: Text(tr('common.retry'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.primary)),
                             ),
                           ],
                         ),
@@ -121,11 +122,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                               children: [
                                 Icon(Icons.favorite_border, size: 64, color: AppColors.textLight),
                                 const SizedBox(height: 12),
-                                const Text('لا توجد عناصر في المفضلة', style: TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
+                                Text(tr('fav.empty'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
                                 const SizedBox(height: 8),
                                 TextButton(
                                   onPressed: () => Navigator.pushNamed(context, AppRoutes.lessonsList),
-                                  child: const Text('تصفح الدروس', style: TextStyle(fontFamily: 'Cairo', color: AppColors.primary)),
+                                  child: Text(tr('fav.browseLessons'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.primary)),
                                 ),
                               ],
                             ),
@@ -164,7 +165,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              fav.title.isNotEmpty ? fav.title : '(بدون عنوان)',
+                                              fav.title.isNotEmpty ? fav.title : tr('common.noTitle'),
                                               style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, fontSize: 13),
                                               maxLines: 2,
                                               overflow: TextOverflow.ellipsis,
@@ -187,7 +188,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                                       ),
                                       IconButton(
                                         icon: const Icon(Icons.favorite, color: AppColors.error, size: 22),
-                                        tooltip: 'إزالة من المفضلة',
+                                        tooltip: tr('fav.remove'),
                                         onPressed: () => _delete(fav),
                                       ),
                                     ],

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/i18n/app_strings.dart';
+import '../../../core/i18n/locale_controller.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/auth_service.dart';
@@ -51,7 +53,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } on ApiException catch (e) {
       if (mounted) setState(() => _errorMessage = e.message);
     } catch (_) {
-      if (mounted) setState(() => _errorMessage = 'تعذر الاتصال بالخادم، تحقق من الإنترنت');
+      if (mounted) setState(() => _errorMessage = tr('common.serverError'));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -60,7 +62,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Directionality(
-      textDirection: TextDirection.rtl,
+      textDirection: localeController.direction,
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F7FB),
         appBar: AppBar(
@@ -68,9 +70,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
           foregroundColor: Colors.white,
           elevation: 0,
           centerTitle: true,
-          title: const Text(
-            'إنشاء حساب',
-            style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, fontSize: 18),
+          title: Text(
+            tr('reg.title'),
+            style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, fontSize: 18),
           ),
           leading: IconButton(
             icon: const Icon(Icons.arrow_forward_ios_rounded, size: 20),
@@ -95,13 +97,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         fit: BoxFit.contain,
                       ),
                       const SizedBox(height: 12),
-                      const Text(
-                        'مرحباً بك في Concouri',
-                        style: TextStyle(fontFamily: 'Cairo', fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                      Text(
+                        tr('reg.welcome'),
+                        style: const TextStyle(fontFamily: 'Cairo', fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
                       ),
                       const SizedBox(height: 4),
-                      const Text(
-                        'أنشئ حسابك للوصول إلى الدروس والتمارين',
+                      Text(
+                        tr('reg.subtitle'),
                         style: TextStyle(fontFamily: 'Cairo', fontSize: 13, color: Color(0xFF64748B)),
                         textAlign: TextAlign.center,
                       ),
@@ -147,40 +149,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Section: المعلومات الشخصية
-                            _SectionLabel(label: 'المعلومات الشخصية'),
+                            _SectionLabel(label: tr('reg.personalInfo')),
                             const SizedBox(height: 14),
                             _AppField(
                               controller: _nameController,
-                              label: 'الاسم الكامل',
+                              label: tr('reg.fullName'),
                               icon: Icons.person_outline_rounded,
-                              validator: (v) => v!.trim().isEmpty ? 'أدخل اسمك الكامل' : null,
+                              validator: (v) => v!.trim().isEmpty ? tr('reg.fullNameRequired') : null,
                             ),
                             const SizedBox(height: 12),
                             _AppField(
                               controller: _emailController,
-                              label: 'البريد الإلكتروني',
+                              label: tr('reg.email'),
                               icon: Icons.email_outlined,
                               keyboardType: TextInputType.emailAddress,
                               textDirection: TextDirection.ltr,
                               validator: (v) {
-                                if (v!.trim().isEmpty) return 'أدخل البريد الإلكتروني';
-                                if (!v.contains('@') || !v.contains('.')) return 'بريد إلكتروني غير صحيح';
+                                if (v!.trim().isEmpty) return tr('reg.emailRequired');
+                                if (!v.contains('@') || !v.contains('.')) return tr('reg.emailInvalid');
                                 return null;
                               },
                             ),
                             const SizedBox(height: 12),
                             _AppField(
                               controller: _phoneController,
-                              label: 'رقم الهاتف',
+                              label: tr('reg.phone'),
                               icon: Icons.phone_outlined,
                               keyboardType: TextInputType.phone,
                               textDirection: TextDirection.ltr,
-                              validator: (v) => v!.trim().isEmpty ? 'أدخل رقم الهاتف' : null,
+                              validator: (v) => v!.trim().isEmpty ? tr('reg.phoneRequired') : null,
                             ),
                             const SizedBox(height: 16),
 
                             // Gender segmented
-                            const Text('الجنس', style: TextStyle(fontFamily: 'Cairo', fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF374151))),
+                            Text(tr('reg.gender'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF374151))),
                             const SizedBox(height: 8),
                             _GenderSelector(
                               value: _selectedGender,
@@ -189,11 +191,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             const SizedBox(height: 20),
 
                             // Section: كلمة المرور
-                            _SectionLabel(label: 'كلمة المرور'),
+                            _SectionLabel(label: tr('reg.passwordSection')),
                             const SizedBox(height: 14),
                             _AppField(
                               controller: _passwordController,
-                              label: 'كلمة المرور',
+                              label: tr('reg.password'),
                               icon: Icons.lock_outline_rounded,
                               obscureText: _obscurePassword,
                               suffixIcon: IconButton(
@@ -204,12 +206,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ),
                                 onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                               ),
-                              validator: (v) => (v?.length ?? 0) < 6 ? 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' : null,
+                              validator: (v) => (v?.length ?? 0) < 6 ? tr('reg.passwordShort') : null,
                             ),
                             const SizedBox(height: 12),
                             _AppField(
                               controller: _confirmController,
-                              label: 'تأكيد كلمة المرور',
+                              label: tr('reg.passwordConfirm'),
                               icon: Icons.lock_outline_rounded,
                               obscureText: _obscureConfirm,
                               suffixIcon: IconButton(
@@ -221,8 +223,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
                               ),
                               validator: (v) {
-                                if (v!.isEmpty) return 'أكد كلمة المرور';
-                                if (v != _passwordController.text) return 'كلمتا المرور غير متطابقتين';
+                                if (v!.isEmpty) return tr('reg.passwordConfirmRequired');
+                                if (v != _passwordController.text) return tr('reg.passwordMismatch');
                                 return null;
                               },
                             ),
@@ -260,7 +262,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                             child: _isLoading
                                 ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
-                                : const Text('إنشاء الحساب', style: TextStyle(fontFamily: 'Cairo', fontSize: 16, fontWeight: FontWeight.bold)),
+                                : Text(tr('reg.submit'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 16, fontWeight: FontWeight.bold)),
                           ),
                         ),
                       ),
@@ -271,11 +273,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text('لديك حساب بالفعل؟', style: TextStyle(fontFamily: 'Cairo', fontSize: 13, color: Color(0xFF64748B))),
+                          Text(tr('reg.haveAccount'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 13, color: Color(0xFF64748B))),
                           TextButton(
                             onPressed: () => Navigator.pop(context),
                             style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 6)),
-                            child: const Text('تسجيل الدخول', style: TextStyle(fontFamily: 'Cairo', fontSize: 13, color: AppColors.primary, fontWeight: FontWeight.bold)),
+                            child: Text(tr('login.submit'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 13, color: AppColors.primary, fontWeight: FontWeight.bold)),
                           ),
                         ],
                       ),
@@ -411,7 +413,7 @@ class _GenderSelector extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    g,
+                    g == 'ذكر' ? tr('reg.male') : tr('reg.female'),
                     style: TextStyle(
                       fontFamily: 'Cairo',
                       fontSize: 14,

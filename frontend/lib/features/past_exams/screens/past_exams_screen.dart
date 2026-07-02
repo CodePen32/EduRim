@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/i18n/app_strings.dart';
 import '../../../core/models/past_exam.dart';
 import '../../../core/services/past_exam_service.dart';
 import '../../../core/utils/url_helper.dart';
@@ -15,7 +16,7 @@ class _PastExamsScreenState extends State<PastExamsScreen> {
   List<PastExam> _exams = [];
   bool _loading = true;
   int? _subjectId;
-  String _subjectName = 'مواضيع الامتحانات السابقة';
+  String _subjectName = '';
   bool _didLoad = false;
 
   @override
@@ -23,6 +24,7 @@ class _PastExamsScreenState extends State<PastExamsScreen> {
     super.didChangeDependencies();
     if (!_didLoad) {
       _didLoad = true;
+      _subjectName = tr('exams.title');
       final args = ModalRoute.of(context)?.settings.arguments;
       if (args is Map) {
         _subjectId = args['subject_id'] as int?;
@@ -54,10 +56,10 @@ class _PastExamsScreenState extends State<PastExamsScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _exams.isEmpty
-              ? const Center(
+              ? Center(
                   child: Text(
-                    'لا توجد مواضيع امتحانات حالياً',
-                    style: TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary),
+                    tr('exams.none'),
+                    style: const TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary),
                   ),
                 )
               : ListView.builder(
@@ -136,7 +138,7 @@ class _ExamCard extends StatelessWidget {
                       child: OutlinedButton.icon(
                         onPressed: () => openExternalUrl(_resolveUrl(exam.examFileUrl), context: context),
                         icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
-                        label: const Text('عرض الموضوع', style: TextStyle(fontFamily: 'Cairo', fontSize: 13)),
+                        label: Text(tr('exams.viewTopic'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 13)),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.error,
                           side: const BorderSide(color: AppColors.error),
@@ -150,7 +152,7 @@ class _ExamCard extends StatelessWidget {
                       child: OutlinedButton.icon(
                         onPressed: () => openExternalUrl(_resolveUrl(exam.solutionFileUrl), context: context),
                         icon: const Icon(Icons.check_circle_outline, size: 18),
-                        label: const Text('عرض الحل', style: TextStyle(fontFamily: 'Cairo', fontSize: 13)),
+                        label: Text(tr('exams.viewSolution'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 13)),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.success,
                           side: const BorderSide(color: AppColors.success),
@@ -159,7 +161,7 @@ class _ExamCard extends StatelessWidget {
                       ),
                     ),
                   if (!exam.hasExam && !exam.hasSolution)
-                    const Text('الملفات غير متاحة حالياً', style: TextStyle(fontFamily: 'Cairo', fontSize: 12, color: AppColors.textSecondary)),
+                    Text(tr('exams.filesUnavailable'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 12, color: AppColors.textSecondary)),
                 ]),
               ],
             ),

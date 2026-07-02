@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/i18n/app_strings.dart';
 import '../../../core/models/lesson.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/download_service.dart';
@@ -28,6 +29,8 @@ class _LessonDetailsScreenState extends State<LessonDetailsScreen> {
   String _downloadLabel = '';
   bool _isDownloaded = false;
   bool _checkingSubscription = false;
+  bool _userSubscribed = false;
+  bool _subLoaded = false;
 
   @override
   void didChangeDependencies() {
@@ -35,6 +38,23 @@ class _LessonDetailsScreenState extends State<LessonDetailsScreen> {
     final lesson = ModalRoute.of(context)?.settings.arguments as Lesson?;
     if (lesson != null && !kIsWeb) {
       _isDownloaded = offlineDownloadService.isLessonDownloaded(lesson.id);
+    }
+    if (!_subLoaded) {
+      _subLoaded = true;
+      _loadSubscription();
+    }
+  }
+
+  // نجلب حالة الاشتراك مرة واحدة لتحديد القفل في رأس الصفحة.
+  // نفس المصدر المستخدم في _checkSubscriptionAndOpenVideo — بلا API جديد.
+  Future<void> _loadSubscription() async {
+    try {
+      final sub = await subscriptionService.getMySubscription();
+      if (!mounted) return;
+      final active = sub.hasSubscription && sub.isActive;
+      if (active != _userSubscribed) setState(() => _userSubscribed = active);
+    } catch (_) {
+      // القيمة الآمنة (غير مشترك) عند الفشل — لا تكسر شيئاً.
     }
   }
 
@@ -129,9 +149,10 @@ class _LessonDetailsScreenState extends State<LessonDetailsScreen> {
       return;
     }
 
-    if (!lesson.videoUrl.isNotEmpty && !lesson.summaryUrl.isNotEmpty) {
+    // الفيديو إلزامي للتنزيل بدون إنترنت.
+    if (lesson.videoUrl.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('لا توجد ملفات قابلة للتنزيل لهذا الدرس', style: TextStyle(fontFamily: 'Cairo')),
+        content: Text('لا يوجد فيديو متاح لهذا الدرس.', style: TextStyle(fontFamily: 'Cairo')),
         behavior: SnackBarBehavior.floating,
       ));
       return;
@@ -148,8 +169,14 @@ class _LessonDetailsScreenState extends State<LessonDetailsScreen> {
       );
       if (mounted) {
         setState(() { _downloading = false; _isDownloaded = true; });
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('تم تنزيل الدرس بنجاح للمشاهدة بدون إنترنت', style: TextStyle(fontFamily: 'Cairo')),
+        final partial = offlineDownloadService.lastDownloadHadMissingAttachments;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+            partial
+                ? 'تم تنزيل الفيديو. قد لا تتوفر بعض الملفات المرفقة.'
+                : 'تم تنزيل الدرس بنجاح للمشاهدة بدون إنترنت',
+            style: const TextStyle(fontFamily: 'Cairo'),
+          ),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
         ));
@@ -157,13 +184,31 @@ class _LessonDetailsScreenState extends State<LessonDetailsScreen> {
     } catch (e) {
       if (mounted) {
         setState(() { _downloading = false; });
+        // لا نعرض DioException الخام أو رمز الحالة أبداً — رسالة عربية فقط.
+        final msg = _friendlyDownloadError(e);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('فشل التنزيل: ${e.toString().replaceFirst('Exception:', '').trim()}', style: const TextStyle(fontFamily: 'Cairo')),
+          content: Text(msg, style: const TextStyle(fontFamily: 'Cairo')),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
         ));
       }
     }
+  }
+
+  /// يحوّل أي خطأ تنزيل إلى رسالة عربية احترافية دون كشف تفاصيل تقنية.
+  String _friendlyDownloadError(Object error) {
+    final raw = error.toString();
+    // رسائل OfflineDownloadException عربية جاهزة (تبدأ بـ "تعذر"/"لا يوجد").
+    if (raw.startsWith('تعذر') || raw.startsWith('لا يوجد')) return raw;
+    final s = raw.toLowerCase();
+    if (s.contains('socket') ||
+        s.contains('timeout') ||
+        s.contains('connection') ||
+        s.contains('network') ||
+        s.contains('failed host lookup')) {
+      return 'تحقق من اتصال الإنترنت.';
+    }
+    return 'تعذر تنزيل الدرس حالياً. حاول لاحقاً.';
   }
 
   Future<void> _checkSubscriptionAndOpenVideo(Lesson lesson) async {
@@ -290,6 +335,7 @@ class _LessonDetailsScreenState extends State<LessonDetailsScreen> {
               background: _LessonHeader(
                 coverImageUrl: lesson?.coverImageUrl ?? '',
                 isFree: isFree,
+                userSubscribed: _userSubscribed,
                 hasVideo: hasVideo,
                 onPlayTap: lesson != null ? () => _checkSubscriptionAndOpenVideo(lesson) : null,
               ),
@@ -343,14 +389,14 @@ class _LessonDetailsScreenState extends State<LessonDetailsScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  const Text('وصف الدرس', style: TextStyle(fontFamily: 'Cairo', fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text(tr('details.description'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 16, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 10),
                   Text(description, style: const TextStyle(fontFamily: 'Cairo', fontSize: 14, color: AppColors.textSecondary, height: 1.7)),
                   const SizedBox(height: 24),
 
                   // زر مشاهدة الفيديو داخل التطبيق
                   PrimaryButton(
-                    label: hasVideo ? 'مشاهدة الدرس' : 'الفيديو غير متاح حالياً',
+                    label: hasVideo ? tr('details.watchLesson') : tr('details.videoUnavailable'),
                     icon: Icons.play_arrow_rounded,
                     onPressed: _checkingSubscription
                         ? () {}
@@ -363,7 +409,7 @@ class _LessonDetailsScreenState extends State<LessonDetailsScreen> {
                     onPressed: lesson != null ? () => _openPdf(lesson) : null,
                     icon: const Icon(Icons.picture_as_pdf_outlined),
                     label: Text(
-                      hasSummary ? 'فتح الملخص PDF' : 'الملخص غير متاح حالياً',
+                      hasSummary ? tr('details.openPdf') : tr('details.pdfUnavailable'),
                       style: const TextStyle(fontFamily: 'Cairo'),
                     ),
                     style: OutlinedButton.styleFrom(
@@ -405,7 +451,7 @@ class _LessonDetailsScreenState extends State<LessonDetailsScreen> {
                           ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                           : const Icon(Icons.check_circle_outline),
                       label: Text(
-                        _marking ? 'جارٍ الحفظ...' : 'تحديد كدرس مكتمل',
+                        _marking ? tr('common.saving') : tr('details.markCompleted'),
                         style: const TextStyle(fontFamily: 'Cairo'),
                       ),
                       style: OutlinedButton.styleFrom(
@@ -582,12 +628,14 @@ class _LessonDetailsScreenState extends State<LessonDetailsScreen> {
 class _LessonHeader extends StatelessWidget {
   final String coverImageUrl;
   final bool isFree;
+  final bool userSubscribed;
   final bool hasVideo;
   final VoidCallback? onPlayTap;
 
   const _LessonHeader({
     required this.coverImageUrl,
     required this.isFree,
+    this.userSubscribed = false,
     this.hasVideo = false,
     this.onPlayTap,
   });
@@ -596,6 +644,8 @@ class _LessonHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasCover = coverImageUrl.isNotEmpty;
     final resolvedUrl = buildFileUrl(coverImageUrl);
+    // مقفل فقط إذا كان الدرس مدفوعاً والمستخدم غير مشترك.
+    final locked = !isFree && !userSubscribed;
 
     return Stack(
       fit: StackFit.expand,
@@ -617,20 +667,22 @@ class _LessonHeader extends StatelessWidget {
             GestureDetector(
               onTap: hasVideo ? onPlayTap : null,
               child: Icon(
-                isFree ? Icons.play_circle_filled : Icons.lock_rounded,
+                locked ? Icons.lock_rounded : Icons.play_circle_filled,
                 color: hasVideo ? AppColors.white : Colors.white38,
                 size: 72,
               ),
             ),
             const SizedBox(height: 12),
-            Text(
-              isFree ? 'درس مجاني' : 'درس مدفوع',
-              style: TextStyle(
-                fontFamily: 'Cairo',
-                color: isFree ? Colors.greenAccent : Colors.white70,
-                fontSize: 14,
+            // لا نعرض "درس مدفوع" للمشترك: يظهر "درس مجاني"/لا شيء أو "للمشتركين فقط".
+            if (isFree || locked)
+              Text(
+                isFree ? tr('details.free') : tr('details.subscribersOnly'),
+                style: TextStyle(
+                  fontFamily: 'Cairo',
+                  color: isFree ? Colors.greenAccent : Colors.white70,
+                  fontSize: 14,
+                ),
               ),
-            ),
           ],
         ),
       ],

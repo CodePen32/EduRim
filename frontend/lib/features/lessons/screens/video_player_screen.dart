@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/i18n/app_strings.dart';
 import '../../../core/models/lesson.dart';
 import '../../../core/services/progress_service.dart';
 import '../../../core/utils/url_helper.dart';
@@ -52,7 +53,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         _title = args.title;
         _videoUrl = buildFileUrl(args.videoUrl);
       } else if (args is Map<String, dynamic>) {
-        _title = args['title'] as String? ?? 'مشاهدة الدرس';
+        _title = args['title'] as String? ?? tr('video.title');
         final rawUrl = args['videoUrl'] as String? ?? '';
         _videoUrl = rawUrl.isNotEmpty ? buildFileUrl(rawUrl) : null;
         _localPath = args['localPath'] as String?;
@@ -80,7 +81,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           httpHeaders: {'Access-Control-Allow-Origin': '*'},
         );
       } else {
-        if (mounted) setState(() { _initializing = false; _error = 'الفيديو غير متاح حالياً'; });
+        if (mounted) setState(() { _initializing = false; _error = tr('video.unavailable'); });
         return;
       }
 
@@ -90,7 +91,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       if (ctrl.value.hasError) {
         debugPrint('VideoPlayer init error: ${ctrl.value.errorDescription}');
         ctrl.dispose();
-        if (mounted) setState(() { _initializing = false; _error = 'تعذر تشغيل الفيديو. قد يكون الملف غير متوفر أو الرابط غير صالح.'; });
+        if (mounted) setState(() { _initializing = false; _error = tr('video.playError'); });
         return;
       }
 
@@ -101,7 +102,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       setState(() => _initializing = false);
     } catch (e) {
       debugPrint('VideoPlayer exception: $e');
-      if (mounted) setState(() { _initializing = false; _error = 'تعذر تشغيل الفيديو. قد يكون الملف غير متوفر أو الرابط غير صالح.'; });
+      if (mounted) setState(() { _initializing = false; _error = tr('video.playError'); });
     }
   }
 
@@ -174,14 +175,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                 children: [
                   // Video or placeholder
                   if (_initializing)
-                    const ColoredBox(
+                    ColoredBox(
                       color: Colors.black,
                       child: Center(child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          CircularProgressIndicator(color: AppColors.white),
-                          SizedBox(height: 12),
-                          Text('جاري تحميل الفيديو...', style: TextStyle(fontFamily: 'Cairo', color: Colors.white54, fontSize: 12)),
+                          const CircularProgressIndicator(color: AppColors.white),
+                          const SizedBox(height: 12),
+                          Text(tr('video.loading'), style: const TextStyle(fontFamily: 'Cairo', color: Colors.white54, fontSize: 12)),
                         ],
                       )),
                     )
@@ -206,7 +207,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                                 ElevatedButton.icon(
                                   onPressed: () => openExternalUrl(_videoUrl, context: context),
                                   icon: const Icon(Icons.open_in_new, size: 18),
-                                  label: const Text('فتح في المتصفح', style: TextStyle(fontFamily: 'Cairo')),
+                                  label: Text(tr('video.openBrowser'), style: const TextStyle(fontFamily: 'Cairo')),
                                   style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: AppColors.white),
                                 ),
                             ],
@@ -291,12 +292,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                         child: _marked
                             ? Container(
                                 decoration: BoxDecoration(border: Border.all(color: AppColors.success), borderRadius: BorderRadius.circular(12)),
-                                child: const Row(
+                                child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(Icons.check_circle, color: AppColors.success, size: 18),
-                                    SizedBox(width: 8),
-                                    Text('تم تحديد الدرس كمكتمل', style: TextStyle(fontFamily: 'Cairo', color: AppColors.success, fontWeight: FontWeight.bold)),
+                                    const Icon(Icons.check_circle, color: AppColors.success, size: 18),
+                                    const SizedBox(width: 8),
+                                    Text(tr('video.marked'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.success, fontWeight: FontWeight.bold)),
                                   ],
                                 ),
                               )
@@ -305,7 +306,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                                 icon: _marking
                                     ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.success))
                                     : const Icon(Icons.check_circle_outline),
-                                label: Text(_marking ? 'جارٍ الحفظ...' : 'تحديد كدرس مكتمل', style: const TextStyle(fontFamily: 'Cairo')),
+                                label: Text(_marking ? tr('common.saving') : tr('details.markCompleted'), style: const TextStyle(fontFamily: 'Cairo')),
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: AppColors.success,
                                   side: const BorderSide(color: AppColors.success),

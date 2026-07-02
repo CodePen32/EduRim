@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/i18n/locale_controller.dart';
 
 /// Gradient hero header used across the info screens.
 class InfoHero extends StatelessWidget {
@@ -62,7 +63,7 @@ class InfoPara extends StatelessWidget {
   const InfoPara(this.text, {super.key});
   @override
   Widget build(BuildContext context) {
-    return Text(text, style: const TextStyle(fontFamily: 'Cairo', fontSize: 14, height: 1.9, color: AppColors.textSecondary), textAlign: TextAlign.right);
+    return Text(text, style: const TextStyle(fontFamily: 'Cairo', fontSize: 14, height: 1.9, color: AppColors.textSecondary), textAlign: TextAlign.start);
   }
 }
 
@@ -76,7 +77,7 @@ class InfoSectionTitle extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: Text(title, style: const TextStyle(fontFamily: 'Cairo', fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary), textAlign: TextAlign.right),
+          child: Text(title, style: const TextStyle(fontFamily: 'Cairo', fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary), textAlign: TextAlign.start),
         ),
         const SizedBox(width: 10),
         Container(
@@ -97,7 +98,7 @@ class InfoScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Directionality(
-      textDirection: TextDirection.rtl,
+      textDirection: localeController.direction,
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(

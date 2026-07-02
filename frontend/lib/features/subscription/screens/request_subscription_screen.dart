@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/i18n/app_strings.dart';
 import '../../../core/models/subscription.dart';
 import '../../../core/services/subscription_service.dart';
 
@@ -75,7 +76,7 @@ class _RequestSubscriptionScreenState extends State<RequestSubscriptionScreen> {
       final url = await subscriptionService.uploadReceiptImage();
       if (url.isNotEmpty && mounted) setState(() => _receiptUrl = url);
     } catch (e) {
-      if (mounted) _showError('تعذر رفع الصورة: ${e.toString()}');
+      if (mounted) _showError('${tr('req.uploadFailed')}: ${e.toString()}');
     } finally {
       if (mounted) setState(() => _uploadingReceipt = false);
     }
@@ -83,8 +84,8 @@ class _RequestSubscriptionScreenState extends State<RequestSubscriptionScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedPlan == null) { _showError('يرجى اختيار نوع الاشتراك'); return; }
-    if (_receiptUrl.isEmpty)   { _showError('يرجى إرفاق صورة إيصال التحويل'); return; }
+    if (_selectedPlan == null) { _showError(tr('req.selectPlan')); return; }
+    if (_receiptUrl.isEmpty)   { _showError(tr('req.attachReceiptError')); return; }
 
     setState(() => _submitting = true);
     try {
@@ -96,14 +97,14 @@ class _RequestSubscriptionScreenState extends State<RequestSubscriptionScreen> {
         note: _noteController.text.trim(),
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(
-            'تم إرسال طلبك بنجاح، سيتم تفعيل اشتراكك بعد تأكد الإدارة من صحة عملية الدفع.',
-            style: TextStyle(fontFamily: 'Cairo'),
-            textAlign: TextAlign.right,
+            tr('req.sent'),
+            style: const TextStyle(fontFamily: 'Cairo'),
+            textAlign: TextAlign.start,
           ),
           backgroundColor: AppColors.success,
-          duration: Duration(seconds: 4),
+          duration: const Duration(seconds: 4),
         ));
         Navigator.pop(context, true);
       }
@@ -116,16 +117,16 @@ class _RequestSubscriptionScreenState extends State<RequestSubscriptionScreen> {
 
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg, style: const TextStyle(fontFamily: 'Cairo'), textAlign: TextAlign.right),
+      content: Text(msg, style: const TextStyle(fontFamily: 'Cairo'), textAlign: TextAlign.start),
       backgroundColor: AppColors.error,
     ));
   }
 
   void _copyNumber() {
     Clipboard.setData(const ClipboardData(text: _kPaymentNumber));
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-      content: Text('تم نسخ الرقم', style: TextStyle(fontFamily: 'Cairo')),
-      duration: Duration(seconds: 2),
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(tr('req.numberCopied'), style: const TextStyle(fontFamily: 'Cairo')),
+      duration: const Duration(seconds: 2),
       behavior: SnackBarBehavior.floating,
     ));
   }
@@ -135,8 +136,8 @@ class _RequestSubscriptionScreenState extends State<RequestSubscriptionScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('طلب اشتراك جديد',
-            style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
+        title: Text(tr('req.title'),
+            style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
         centerTitle: true,
@@ -152,7 +153,7 @@ class _RequestSubscriptionScreenState extends State<RequestSubscriptionScreen> {
                   children: [
                     // ── 1. الاسم الكامل (عرض فقط) ──
                     _buildSection(
-                      title: 'نوع الاشتراك',
+                      title: tr('req.planType'),
                       child: _plans.isEmpty
                           ? _emptyPlans()
                           : _planSelector(),
@@ -162,14 +163,14 @@ class _RequestSubscriptionScreenState extends State<RequestSubscriptionScreen> {
 
                     // ── 2. رقم الهاتف ──
                     _buildSection(
-                      title: 'رقم الهاتف *',
+                      title: tr('req.phone'),
                       child: TextFormField(
                         controller: _phoneController,
                         keyboardType: TextInputType.phone,
-                        textAlign: TextAlign.right,
-                        decoration: _inputDec('أدخل رقم هاتفك'),
+                        textAlign: TextAlign.start,
+                        decoration: _inputDec(tr('req.phoneHint')),
                         validator: (v) =>
-                            (v == null || v.trim().isEmpty) ? 'رقم الهاتف مطلوب' : null,
+                            (v == null || v.trim().isEmpty) ? tr('req.phoneRequired') : null,
                       ),
                     ),
 
@@ -177,7 +178,7 @@ class _RequestSubscriptionScreenState extends State<RequestSubscriptionScreen> {
 
                     // ── 3. حسابات الدفع ──
                     _buildSection(
-                      title: 'حسابات الدفع',
+                      title: tr('req.paymentAccounts'),
                       child: Column(
                         children: _paymentMethods.map((m) => _PaymentCard(
                           method: m,
@@ -203,28 +204,28 @@ class _RequestSubscriptionScreenState extends State<RequestSubscriptionScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          const Row(
+                          Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              Text('تعليمات الدفع',
-                                  style: TextStyle(
+                              Text(tr('req.paymentInstructions'),
+                                  style: const TextStyle(
                                       fontFamily: 'Cairo',
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14,
                                       color: Color(0xFF0369A1))),
-                              SizedBox(width: 6),
-                              Icon(Icons.info_outline, color: Color(0xFF0369A1), size: 18),
+                              const SizedBox(width: 6),
+                              const Icon(Icons.info_outline, color: Color(0xFF0369A1), size: 18),
                             ],
                           ),
                           const SizedBox(height: 8),
-                          const Text(
-                            'يرجى تحويل مبلغ الاشتراك إلى الرقم 36050044 عبر تطبيق الدفع الذي اخترته، ثم إرفاق لقطة شاشة من عملية التحويل.',
-                            style: TextStyle(
+                          Text(
+                            tr('req.paymentBody'),
+                            style: const TextStyle(
                                 fontFamily: 'Cairo',
                                 fontSize: 13,
                                 color: Color(0xFF0C4A6E),
                                 height: 1.7),
-                            textAlign: TextAlign.right,
+                            textAlign: TextAlign.start,
                           ),
                           const SizedBox(height: 10),
                           GestureDetector(
@@ -243,7 +244,7 @@ class _RequestSubscriptionScreenState extends State<RequestSubscriptionScreen> {
                                   Row(children: [
                                     const Icon(Icons.copy, size: 16, color: AppColors.primary),
                                     const SizedBox(width: 6),
-                                    Text('نسخ الرقم',
+                                    Text(tr('req.copyNumber'),
                                         style: const TextStyle(
                                             fontFamily: 'Cairo',
                                             fontSize: 13,
@@ -269,7 +270,7 @@ class _RequestSubscriptionScreenState extends State<RequestSubscriptionScreen> {
 
                     // ── 5. رفع صورة الإيصال (إلزامي) ──
                     _buildSection(
-                      title: 'إيصال التحويل *',
+                      title: tr('req.receipt'),
                       child: Column(
                         children: [
                           GestureDetector(
@@ -308,8 +309,8 @@ class _RequestSubscriptionScreenState extends State<RequestSubscriptionScreen> {
                                         const SizedBox(height: 8),
                                         Text(
                                           _receiptUrl.isEmpty
-                                              ? 'يرجى الضغط لإرفاق صورة الحوالة'
-                                              : 'تم رفع الصورة بنجاح',
+                                              ? tr('req.attachReceipt')
+                                              : tr('req.receiptUploaded'),
                                           style: TextStyle(
                                               fontFamily: 'Cairo',
                                               fontSize: 14,
@@ -330,12 +331,12 @@ class _RequestSubscriptionScreenState extends State<RequestSubscriptionScreen> {
 
                     // ── 6. ملاحظة اختيارية ──
                     _buildSection(
-                      title: 'ملاحظة (اختياري)',
+                      title: tr('req.note'),
                       child: TextFormField(
                         controller: _noteController,
                         maxLines: 2,
-                        textAlign: TextAlign.right,
-                        decoration: _inputDec('أي معلومات إضافية...'),
+                        textAlign: TextAlign.start,
+                        decoration: _inputDec(tr('req.noteHint')),
                       ),
                     ),
 
@@ -356,8 +357,8 @@ class _RequestSubscriptionScreenState extends State<RequestSubscriptionScreen> {
                         child: _submitting
                             ? const SizedBox(width: 22, height: 22,
                                 child: CircularProgressIndicator(color: AppColors.white, strokeWidth: 2.5))
-                            : const Text('إتمام الدفع',
-                                style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, fontSize: 16)),
+                            : Text(tr('req.submit'),
+                                style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, fontSize: 16)),
                       ),
                     ),
                   ],
@@ -456,8 +457,8 @@ class _RequestSubscriptionScreenState extends State<RequestSubscriptionScreen> {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: const Color(0xFFE2E8F0)),
         ),
-        child: const Text('لا توجد خطط متاحة حالياً',
-            style: TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary),
+        child: Text(tr('req.noPlans'),
+            style: const TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary),
             textAlign: TextAlign.center),
       );
 

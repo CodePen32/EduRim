@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'core/i18n/locale_controller.dart';
 import 'core/routes/app_routes.dart';
 import 'core/services/auth_service.dart';
 import 'core/theme/app_theme.dart';
@@ -8,19 +10,34 @@ class EdurImApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Concouri',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      locale: const Locale('ar', 'MR'),
-      builder: (context, child) {
-        return Directionality(
-          textDirection: TextDirection.rtl,
-          child: child!,
+    // يعيد بناء MaterialApp عند تغيير اللغة، مع ضبط الاتجاه ديناميكياً.
+    return ValueListenableBuilder<Locale>(
+      valueListenable: localeController.locale,
+      builder: (context, locale, _) {
+        final isArabic = locale.languageCode == 'ar';
+        return MaterialApp(
+          title: 'Concouri',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          locale: locale,
+          supportedLocales: const [Locale('ar'), Locale('fr')],
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          builder: (context, child) {
+            // ar = RTL، fr = LTR.
+            return Directionality(
+              textDirection:
+                  isArabic ? TextDirection.rtl : TextDirection.ltr,
+              child: child!,
+            );
+          },
+          home: const _Splash(),
+          routes: AppRoutes.routes,
         );
       },
-      home: const _Splash(),
-      routes: AppRoutes.routes,
     );
   }
 }

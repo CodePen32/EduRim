@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/i18n/app_strings.dart';
 import '../../../core/models/lesson.dart';
 import '../../../core/models/subject.dart';
 import '../../../core/routes/app_routes.dart';
@@ -81,7 +82,7 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                       const Icon(Icons.menu_book_rounded, size: 56, color: Colors.white70),
                       const SizedBox(height: 12),
                       Text(
-                        subject?.nameAr ?? 'المادة',
+                        subject?.nameAr ?? tr('subject.fallback'),
                         style: const TextStyle(fontFamily: 'Cairo', fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.white),
                       ),
                       Text(
@@ -105,21 +106,21 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                     children: [
                       _NavButton(
                         icon: Icons.people_outline,
-                        label: 'الأساتذة',
+                        label: tr('subject.teachers'),
                         color: const Color(0xFF059669),
                         onTap: () => Navigator.pushNamed(context, AppRoutes.teachers, arguments: subject?.id),
                       ),
                       const SizedBox(width: 10),
                       _NavButton(
                         icon: Icons.quiz_outlined,
-                        label: 'التمارين',
+                        label: tr('subject.exercises'),
                         color: const Color(0xFF7C3AED),
                         onTap: () => Navigator.pushNamed(context, AppRoutes.exercisesList, arguments: subject?.id),
                       ),
                       const SizedBox(width: 10),
                       _NavButton(
                         icon: Icons.menu_book_rounded,
-                        label: 'كل الدروس',
+                        label: tr('subject.allLessons'),
                         color: AppColors.primary,
                         onTap: () => Navigator.pushNamed(context, AppRoutes.lessonsList, arguments: subject?.id),
                       ),
@@ -130,18 +131,18 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                     children: [
                       _NavButton(
                         icon: Icons.history_edu_outlined,
-                        label: 'الامتحانات السابقة',
+                        label: tr('subject.pastExams'),
                         color: const Color(0xFFDC2626),
                         onTap: () => Navigator.pushNamed(
                           context,
                           AppRoutes.pastExams,
-                          arguments: {'subject_id': subject?.id, 'subject_name': subject?.nameAr ?? 'مواضيع الامتحانات'},
+                          arguments: {'subject_id': subject?.id, 'subject_name': subject?.nameAr ?? tr('subject.examTopics')},
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 28),
-                  const Text('الدروس المتاحة', style: TextStyle(fontFamily: 'Cairo', fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text(tr('subject.availableLessons'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 16, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
                 ],
               ),
@@ -162,18 +163,18 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                       child: TextButton.icon(
                         onPressed: _reload,
                         icon: const Icon(Icons.refresh),
-                        label: const Text('إعادة التحميل', style: TextStyle(fontFamily: 'Cairo')),
+                        label: Text(tr('subject.reload'), style: const TextStyle(fontFamily: 'Cairo')),
                       ),
                     ),
                   );
                 }
                 final lessons = snapshot.data ?? [];
                 if (lessons.isEmpty) {
-                  return const SliverToBoxAdapter(
+                  return SliverToBoxAdapter(
                     child: Center(
                       child: Padding(
-                        padding: EdgeInsets.all(24),
-                        child: Text('لا توجد دروس لهذه المادة حالياً', style: TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
+                        padding: const EdgeInsets.all(24),
+                        child: Text(tr('subject.noLessons'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
                       ),
                     ),
                   );
@@ -278,7 +279,7 @@ class _LessonTile extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                           decoration: BoxDecoration(color: AppColors.success.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
-                          child: const Text('مجاني', style: TextStyle(fontFamily: 'Cairo', fontSize: 10, color: AppColors.success, fontWeight: FontWeight.bold)),
+                          child: Text(tr('lessons.free'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 10, color: AppColors.success, fontWeight: FontWeight.bold)),
                         ),
                       ],
                     ],

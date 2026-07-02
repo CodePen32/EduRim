@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/i18n/app_strings.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/auth_service.dart';
@@ -43,7 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } on ApiException catch (e) {
       if (mounted) _showError(e.message);
     } catch (_) {
-      if (mounted) _showError('تعذر الاتصال بالخادم، تحقق من الإنترنت');
+      if (mounted) _showError(tr('common.serverError'));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -79,44 +80,44 @@ class _LoginScreenState extends State<LoginScreen> {
                   fit: BoxFit.contain,
                 ),
                 const SizedBox(height: 24),
-                const Text('مرحباً بك في Concouri', style: TextStyle(fontFamily: 'Cairo', fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                Text(tr('login.welcome'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
-                const Text('سجل دخولك للمتابعة', style: TextStyle(fontFamily: 'Cairo', fontSize: 14, color: AppColors.textSecondary)),
+                Text(tr('login.subtitle'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 14, color: AppColors.textSecondary)),
                 const SizedBox(height: 40),
                 TextFormField(
                   controller: _identifierController,
                   textDirection: TextDirection.ltr,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: 'البريد الإلكتروني أو رقم الهاتف',
-                    prefixIcon: Icon(Icons.person_outline),
+                  decoration: InputDecoration(
+                    labelText: tr('login.identifier'),
+                    prefixIcon: const Icon(Icons.person_outline),
                   ),
-                  validator: (v) => v!.isEmpty ? 'أدخل البريد الإلكتروني أو رقم الهاتف' : null,
+                  validator: (v) => v!.isEmpty ? tr('login.identifierRequired') : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
-                    labelText: 'كلمة المرور',
+                    labelText: tr('login.password'),
                     prefixIcon: const Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
                       onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                     ),
                   ),
-                  validator: (v) => v!.length < 6 ? 'كلمة المرور قصيرة جداً' : null,
+                  validator: (v) => v!.length < 6 ? tr('login.passwordShort') : null,
                 ),
                 const SizedBox(height: 32),
-                PrimaryButton(label: 'تسجيل الدخول', onPressed: _login, isLoading: _isLoading),
+                PrimaryButton(label: tr('login.submit'), onPressed: _login, isLoading: _isLoading),
                 const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('ليس لديك حساب؟', style: TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
+                    Text(tr('login.noAccount'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
                     TextButton(
                       onPressed: () => Navigator.pushNamed(context, AppRoutes.register),
-                      child: const Text('إنشاء حساب', style: TextStyle(fontFamily: 'Cairo', color: AppColors.primary, fontWeight: FontWeight.bold)),
+                      child: Text(tr('login.createAccount'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.primary, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),

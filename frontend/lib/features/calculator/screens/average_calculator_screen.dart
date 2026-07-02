@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/i18n/app_strings.dart';
+import '../../../core/i18n/locale_controller.dart';
 import '../../../core/models/calculator_result.dart';
 import '../../../core/models/calculator_subject.dart';
 import '../../../core/network/api_client.dart';
@@ -73,15 +75,15 @@ class _AverageCalculatorScreenState extends State<AverageCalculatorScreen> {
           e.toString().contains('XMLHttpRequest');
       String msg;
       if (isConn) {
-        msg = 'تعذر الاتصال بالخادم، تحقق من اتصالك';
+        msg = tr('calc.loadServerError');
       } else if (e is ApiException) {
-        msg = e.message.isNotEmpty ? e.message : 'حدث خطأ أثناء تحميل الحاسبة';
+        msg = e.message.isNotEmpty ? e.message : tr('calc.loadError');
       } else {
         // TypeError or other — show actual message for debugging
         final raw = e.toString();
         msg = raw.contains('type') && raw.contains('is not a subtype')
-            ? 'خطأ في تحليل البيانات — تواصل مع الدعم'
-            : 'حدث خطأ أثناء تحميل الحاسبة';
+            ? tr('calc.parseError')
+            : tr('calc.loadError');
       }
       setState(() { _error = msg; _loading = false; });
     }
@@ -99,11 +101,11 @@ class _AverageCalculatorScreenState extends State<AverageCalculatorScreen> {
     if (v.trim().isEmpty) {
       err = null;
     } else if (val == null) {
-      err = 'قيمة غير صالحة';
+      err = tr('calc.invalidValue');
     } else if (val < 0) {
-      err = 'لا يمكن أن تكون سالبة';
+      err = tr('calc.negative');
     } else if (val > s.maxMark) {
-      err = 'الحد الأقصى ${s.maxMark.toInt()}';
+      err = AppStrings.withArg('calc.maxMark', '${s.maxMark.toInt()}');
     }
     setState(() {
       _marks[s.subjectId] = (err == null && v.trim().isNotEmpty) ? val : null;
@@ -117,7 +119,7 @@ class _AverageCalculatorScreenState extends State<AverageCalculatorScreen> {
     for (final s in _subjects) {
       final ctrl = _controllers[s.subjectId]!;
       if (ctrl.text.trim().isEmpty) {
-        setState(() => _fieldErrors[s.subjectId] = 'أدخل النقطة');
+        setState(() => _fieldErrors[s.subjectId] = tr('calc.enterMark'));
         hasError = true;
       }
     }
@@ -158,7 +160,7 @@ class _AverageCalculatorScreenState extends State<AverageCalculatorScreen> {
   @override
   Widget build(BuildContext context) {
     return Directionality(
-      textDirection: TextDirection.rtl,
+      textDirection: localeController.direction,
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F7FB),
         appBar: widget.standalone
@@ -167,8 +169,8 @@ class _AverageCalculatorScreenState extends State<AverageCalculatorScreen> {
                 foregroundColor: Colors.white,
                 elevation: 0,
                 centerTitle: true,
-                title: const Text('الحاسبة',
-                    style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, fontSize: 18)),
+                title: Text(tr('calc.title'),
+                    style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, fontSize: 18)),
               )
             : null,
         body: _buildBody(),
@@ -211,7 +213,7 @@ class _AverageCalculatorScreenState extends State<AverageCalculatorScreen> {
             ElevatedButton.icon(
               onPressed: _loadSubjects,
               icon: const Icon(Icons.refresh_rounded, size: 18),
-              label: const Text('إعادة المحاولة', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
+              label: Text(tr('calc.retry'), style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
@@ -238,10 +240,10 @@ class _AverageCalculatorScreenState extends State<AverageCalculatorScreen> {
               child: const Icon(Icons.calculate_outlined, size: 36, color: Color(0xFF8A96B8)),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'لا توجد مواد للحاسبة لهذا المستوى حالياً',
+            Text(
+              tr('calc.noSubjects'),
               textAlign: TextAlign.center,
-              style: TextStyle(fontFamily: 'Cairo', fontSize: 15, color: Color(0xFF64748B), height: 1.6),
+              style: const TextStyle(fontFamily: 'Cairo', fontSize: 15, color: Color(0xFF64748B), height: 1.6),
             ),
           ],
         ),
@@ -264,10 +266,10 @@ class _AverageCalculatorScreenState extends State<AverageCalculatorScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (!widget.standalone)
-                  const Padding(
-                    padding: EdgeInsets.only(bottom: 16),
-                    child: Text('الحاسبة',
-                        style: TextStyle(fontFamily: 'Cairo', fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Text(tr('calc.title'),
+                        style: const TextStyle(fontFamily: 'Cairo', fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                   ),
 
                 // ── Result card (top when available) ──
@@ -286,13 +288,13 @@ class _AverageCalculatorScreenState extends State<AverageCalculatorScreen> {
                     Container(width: 3, height: 18,
                         decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(2))),
                     const SizedBox(width: 8),
-                    const Text('أدخل نقاطك', style: TextStyle(fontFamily: 'Cairo', fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                    Text(tr('calc.enterMarks'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                     const Spacer(),
                     if (_result != null || _marks.values.any((v) => v != null))
                       TextButton.icon(
                         onPressed: _reset,
                         icon: const Icon(Icons.refresh_rounded, size: 16),
-                        label: const Text('مسح النقاط', style: TextStyle(fontFamily: 'Cairo', fontSize: 12)),
+                        label: Text(tr('calc.clearMarks'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 12)),
                         style: TextButton.styleFrom(
                           foregroundColor: const Color(0xFF64748B),
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -337,9 +339,9 @@ class _InfoCard extends StatelessWidget {
   const _InfoCard({required this.isPoints, required this.learningPathId});
 
   String get _subtitle {
-    if (isPoints) return 'أدخل نقاطك · حد النجاح 85 / 200';
-    if (learningPathId == 2) return 'راسب < 7 · متجاوز 7–8.5 · ناجح ≥ 8.5';
-    return 'راسب < 8 · استدراك 8–10 · ناجح ≥ 10';
+    if (isPoints) return tr('calc.pointsHint');
+    if (learningPathId == 2) return tr('calc.bepcHint');
+    return tr('calc.bacHint');
   }
 
   @override
@@ -365,9 +367,9 @@ class _InfoCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  isPoints ? 'نظام كونكور — النقاط / 200'
-                      : learningPathId == 2 ? 'نظام BEPC — المعدل / 20'
-                      : 'نظام BAC — المعدل / 20',
+                  isPoints ? tr('calc.sysConcours')
+                      : learningPathId == 2 ? tr('calc.sysBepc')
+                      : tr('calc.sysBac'),
                   style: const TextStyle(fontFamily: 'Cairo', fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
                   textAlign: TextAlign.right,
                 ),
@@ -436,7 +438,7 @@ class _SubjectCard extends StatelessWidget {
                           color: AppColors.primary.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: const Text('إجباري', style: TextStyle(fontFamily: 'Cairo', fontSize: 10, color: AppColors.primary, fontWeight: FontWeight.w600)),
+                        child: Text(tr('calc.required'), style: const TextStyle(fontFamily: 'Cairo', fontSize: 10, color: AppColors.primary, fontWeight: FontWeight.w600)),
                       ),
                       const SizedBox(width: 6),
                     ],
@@ -444,7 +446,7 @@ class _SubjectCard extends StatelessWidget {
                       child: Text(
                         subject.subjectName,
                         style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1E293B)),
-                        textAlign: TextAlign.right,
+                        textAlign: TextAlign.start,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -477,7 +479,7 @@ class _SubjectCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          'م ${subject.coefficient % 1 == 0 ? subject.coefficient.toInt() : subject.coefficient}',
+                          AppStrings.withArg('calc.coefPrefix', '${subject.coefficient % 1 == 0 ? subject.coefficient.toInt() : subject.coefficient}'),
                           style: const TextStyle(fontFamily: 'Cairo', fontSize: 11, color: Color(0xFF7C3AED), fontWeight: FontWeight.w600),
                         ),
                       ),
@@ -573,7 +575,7 @@ class _ResultCard extends StatelessWidget {
         ? '${result.totalPoints.toStringAsFixed(result.totalPoints % 1 == 0 ? 0 : 1)} / ${result.maxTotal.toInt()}'
         : '${result.average.toStringAsFixed(2)} / 20';
 
-    final label = result.isPoints ? 'مجموع نقاطك' : 'معدلك';
+    final label = result.isPoints ? tr('calc.yourTotal') : tr('calc.yourAverage');
 
     return Container(
       decoration: BoxDecoration(
@@ -618,8 +620,8 @@ class _ResultCard extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             result.isPoints
-                ? 'المجموع الكلي: ${result.maxTotal.toInt()} نقطة'
-                : 'مجموع المعاملات: ${result.totalCoefficients.toStringAsFixed(0)}',
+                ? AppStrings.withArg('calc.maxTotal', '${result.maxTotal.toInt()}')
+                : AppStrings.withArg('calc.sumCoef', result.totalCoefficients.toStringAsFixed(0)),
             style: TextStyle(fontFamily: 'Cairo', fontSize: 11, color: textColor.withValues(alpha: 0.6)),
           ),
         ],
@@ -657,7 +659,7 @@ class _CalcButton extends StatelessWidget {
             ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
             : const Icon(Icons.calculate_rounded, size: 20),
         label: Text(
-          calculating ? 'جارٍ الحساب...' : 'احسب النتيجة',
+          calculating ? tr('calc.calculating') : tr('calc.calculate'),
           style: const TextStyle(fontFamily: 'Cairo', fontSize: 16, fontWeight: FontWeight.bold),
         ),
         style: ElevatedButton.styleFrom(

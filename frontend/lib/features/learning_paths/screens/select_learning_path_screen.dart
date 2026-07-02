@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/i18n/app_strings.dart';
+import '../../../core/i18n/locale_controller.dart';
 import '../../../core/models/learning_path.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/auth_service.dart';
@@ -91,10 +93,10 @@ class _SelectLearningPathScreenState extends State<SelectLearningPathScreen>
   @override
   Widget build(BuildContext context) {
     return Directionality(
-      textDirection: TextDirection.rtl,
+      textDirection: localeController.direction,
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F7FB),
-        appBar: const SelectionAppBar(title: 'اختر مسارك الدراسي'),
+        appBar: SelectionAppBar(title: tr('path.title')),
         body: _checking
             ? const Center(child: CircularProgressIndicator())
             : FadeTransition(
@@ -102,9 +104,9 @@ class _SelectLearningPathScreenState extends State<SelectLearningPathScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SelectionSectionHeader(
-                title: 'اختر مسارك الدراسي',
-                subtitle: 'سيتم تخصيص المحتوى والمواد حسب اختيارك',
+              SelectionSectionHeader(
+                title: tr('path.title'),
+                subtitle: tr('path.subtitle'),
               ),
               const SizedBox(height: 12),
               const SelectionStepIndicator(step: 1, total: 2),
@@ -133,7 +135,7 @@ class _SelectLearningPathScreenState extends State<SelectLearningPathScreen>
                 ),
               ),
               SelectionBottomButton(
-                label: 'متابعة',
+                label: tr('common.continue'),
                 saving: _saving,
                 enabled: _selected != null,
                 onPressed: _proceed,

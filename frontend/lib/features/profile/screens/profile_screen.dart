@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/i18n/app_strings.dart';
 import '../../../core/models/user.dart';
 import '../../../core/models/progress_stats.dart';
 import '../../../core/routes/app_routes.dart';
@@ -51,7 +52,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
       final isConn = e.toString().contains('SocketException') || e.toString().contains('Connection');
       setState(() {
-        _error = isConn ? 'تعذر الاتصال بالخادم' : 'تعذر تحميل البيانات';
+        _error = isConn ? tr('home.connError') : tr('profile.loadError');
         _loading = false;
       });
     }
@@ -61,13 +62,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('تسجيل الخروج', style: TextStyle(fontFamily: 'Cairo')),
-        content: const Text('هل تريد تسجيل الخروج؟', style: TextStyle(fontFamily: 'Cairo')),
+        title: Text(tr('drawer.logout'), style: const TextStyle(fontFamily: 'Cairo')),
+        content: Text(tr('logout.confirm'), style: const TextStyle(fontFamily: 'Cairo')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء', style: TextStyle(fontFamily: 'Cairo'))),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(tr('common.cancel'), style: const TextStyle(fontFamily: 'Cairo'))),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('خروج', style: TextStyle(fontFamily: 'Cairo', color: AppColors.error)),
+            child: Text(tr('profile.logoutShort'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.error)),
           ),
         ],
       ),
@@ -81,7 +82,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: widget.standalone ? const AppHeader(title: 'حسابي') : null,
+      appBar: widget.standalone ? AppHeader(title: tr('profile.title')) : null,
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
@@ -91,7 +92,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       Text(_error!, style: const TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
                       const SizedBox(height: 12),
-                      TextButton(onPressed: _loadUser, child: const Text('إعادة المحاولة', style: TextStyle(fontFamily: 'Cairo', color: AppColors.primary))),
+                      TextButton(onPressed: _loadUser, child: Text(tr('common.retry'), style: const TextStyle(fontFamily: 'Cairo', color: AppColors.primary))),
                     ],
                   ),
                 )
@@ -135,7 +136,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             children: [
                               Expanded(
                                 child: _StatsCard(
-                                  label: 'دروس مكتملة',
+                                  label: tr('profile.completedLessons'),
                                   value: '${_stats!.completedLessons}',
                                   icon: Icons.check_circle_outline,
                                 ),
@@ -143,7 +144,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: _StatsCard(
-                                  label: 'متوسط التقدم',
+                                  label: tr('profile.avgProgress'),
                                   value: '${_stats!.averagePercentage.toStringAsFixed(0)}%',
                                   icon: Icons.trending_up,
                                 ),
@@ -165,19 +166,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         padding: const EdgeInsets.all(16),
                         child: Column(
                           children: [
-                            _ProfileTile(icon: Icons.bar_chart_outlined, label: 'عرض تقدمي', onTap: () => Navigator.pushNamed(context, AppRoutes.progress)),
-                            _ProfileTile(icon: Icons.edit_outlined, label: 'تعديل الملف الشخصي', onTap: () async {
+                            _ProfileTile(icon: Icons.bar_chart_outlined, label: tr('profile.viewProgress'), onTap: () => Navigator.pushNamed(context, AppRoutes.progress)),
+                            _ProfileTile(icon: Icons.edit_outlined, label: tr('profile.edit'), onTap: () async {
                               final changed = await Navigator.pushNamed(context, AppRoutes.editProfile);
                               if (changed == true && mounted) {
                                 _loadUser();
                                 widget.onProfileUpdated?.call();
                               }
                             }),
-                            _ProfileTile(icon: Icons.calculate_outlined, label: 'حاسبة المعدل', onTap: () => Navigator.pushNamed(context, AppRoutes.averageCalculator)),
-                            _ProfileTile(icon: Icons.notifications_outlined, label: 'الإشعارات', onTap: () => Navigator.pushNamed(context, AppRoutes.notifications)),
-                            _ProfileTile(icon: Icons.help_outline, label: 'المساعدة', onTap: () {}),
+                            _ProfileTile(icon: Icons.calculate_outlined, label: tr('profile.calculator'), onTap: () => Navigator.pushNamed(context, AppRoutes.averageCalculator)),
+                            _ProfileTile(icon: Icons.notifications_outlined, label: tr('drawer.notifications'), onTap: () => Navigator.pushNamed(context, AppRoutes.notifications)),
+                            _ProfileTile(icon: Icons.help_outline, label: tr('profile.help'), onTap: () {}),
                             const SizedBox(height: 8),
-                            _ProfileTile(icon: Icons.logout, label: 'تسجيل الخروج', color: AppColors.error, onTap: _logout),
+                            _ProfileTile(icon: Icons.logout, label: tr('drawer.logout'), color: AppColors.error, onTap: _logout),
                           ],
                         ),
                       ),
@@ -237,20 +238,20 @@ class _SubscriptionCard extends StatelessWidget {
 
     final Color bg = isSubscribed ? AppColors.success : AppColors.warning;
     final IconData icon = isSubscribed ? Icons.verified_rounded : Icons.lock_clock_outlined;
-    final String title = isSubscribed ? 'مشترك' : 'متفرّج (غير مشترك)';
+    final String title = isSubscribed ? tr('sub.subscribed') : tr('sub.notSubscribed');
 
     String subtitle;
     if (isSubscribed) {
       final parts = <String>[];
       if (sub.planName.isNotEmpty) parts.add(sub.planName);
       if (sub.daysRemaining > 0) {
-        parts.add('متبقٍ ${sub.daysRemaining} يوم');
+        parts.add(AppStrings.withArg('sub.daysLeft', '${sub.daysRemaining}'));
       } else if (sub.endDate.isNotEmpty) {
-        parts.add('ينتهي ${sub.endDate}');
+        parts.add(AppStrings.withArg('sub.endsOn', sub.endDate));
       }
-      subtitle = parts.isEmpty ? 'اشتراك نشط' : parts.join(' · ');
+      subtitle = parts.isEmpty ? tr('sub.active') : parts.join(' · ');
     } else {
-      subtitle = 'اشترك للوصول لكامل الدروس والمحتوى';
+      subtitle = tr('sub.cta');
     }
 
     return GestureDetector(
